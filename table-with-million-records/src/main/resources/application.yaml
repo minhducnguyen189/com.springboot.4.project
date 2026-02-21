@@ -1,0 +1,21 @@
+server:
+  port: "7070"
+  forward-headers-strategy: 'framework'
+spring:
+  datasource:
+    driverClassName: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/postgres?useUnicode=true&characterEncoding=UTF-8
+    username: root
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    open-in-view: true
+    properties:
+      hibernate:
+        generate_statistics: true
+  flyway:
+    enabled: true
+    table: "flyway_schema_history"
+    baseline-on-migrate: true
+    baseline-version: 0
