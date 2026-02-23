@@ -18,7 +18,8 @@ import org.hibernate.annotations.Generated;
 @Table(name = "transaction_detail")
 public class TransactionDetailEntity extends BaseEntity {
 
-    @Serial private static final long serialVersionUID = 9165902569499521742L;
+    @Serial
+    private static final long serialVersionUID = 9165902569499521742L;
 
     @Generated
     @Column(name = "transaction_number")

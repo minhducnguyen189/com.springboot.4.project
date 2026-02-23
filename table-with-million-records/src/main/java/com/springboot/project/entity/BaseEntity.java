@@ -10,19 +10,17 @@ import jakarta.persistence.PrePersist;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
-import java.util.Objects;
 import java.util.UUID;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @MappedSuperclass
 @Getter
 @Setter
 public class BaseEntity implements Serializable {
 
-    @Serial private static final long serialVersionUID = -566302631329446085L;
+    @Serial
+    private static final long serialVersionUID = -566302631329446085L;
 
     @Id
     @Column(name = "id", updatable = false, nullable = false)
@@ -52,10 +50,6 @@ public class BaseEntity implements Serializable {
     }
 
     private String getCurrentUser() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (Objects.nonNull(auth) && auth.getPrincipal() instanceof LoginUserModel principle) {
-            return principle.getUsername();
-        }
         return "SYSTEM";
     }
 }

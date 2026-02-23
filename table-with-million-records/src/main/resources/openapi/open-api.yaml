@@ -15,123 +15,11 @@ externalDocs:
 servers:
   - url: /api
 tags:
-  - name: authentication
-    description: Everything about authentication
-  - name: login-user
-    description: Everything about login users
+  - name: bank-account
+    description: Everything about bank accounts
+  - name: transaction
+    description: Everything about transactions
 paths:
-  /private-app/actions/authenticate:
-    get:
-      tags:
-        - authentication
-      summary: Authentication login redirect
-      description: >
-        Redirects the user to the frontend application after authentication.
-        If redirectPath is not provided, defaults to /pages/dashboard.
-      operationId: authenticationLogin
-      parameters:
-        - name: redirectPath
-          in: query
-          required: false
-          description: Optional path to redirect after login
-          schema:
-            type: string
-            example: /pages/private-app/dashboard
-      responses:
-        "302":
-          description: Redirect to frontend application
-          headers:
-            Location:
-              description: Redirect target URL
-              schema:
-                type: string
-                format: uri
-        "400":
-          description: bad request operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "404":
-          description: not found operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "500":
-          description: internal server error operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /private-app/actions/refresh-token:
-    get:
-      tags:
-        - authentication
-      summary: refresh token login redirect
-      description: >
-        Redirects the user to the frontend application if the token is expired.
-      operationId: refreshToken
-      responses:
-        "302":
-          description: Redirect to frontend application
-          headers:
-            Location:
-              description: Redirect target URL
-              schema:
-                type: string
-                format: uri
-        "400":
-          description: bad request operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "404":
-          description: not found operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-        "500":
-          description: internal server error operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-  /private-app/users/actions/current:
-    get:
-      tags:
-        - login-user
-      summary: get current login user info
-      description: get current login user info
-      operationId: getCurrentLoginUser
-      security:
-        - bearerAuth: [ ]
-      responses:
-        "200":
-          description: Secured message from Admin API
-          content:
-            text/plain:
-              schema:
-                $ref: '#/components/schemas/LoginUserResponse'
-        "401":
-          description: Unauthorized
-        "400":
-          description: bad request operation
-        "403":
-          description: forbidden
-        "404":
-          description: not found operation
-        "500":
-          description: internal server error operation
-        default:
-          description: Unexpected error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
   /private-app/transactions/actions/filter:
     post:
       tags:
@@ -140,7 +28,7 @@ paths:
       description: filter transactions
       operationId: filterTransactions
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       requestBody:
         description: filter request
         required: true
@@ -154,7 +42,7 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/TransactionFilterResponse'
+                $ref: "#/components/schemas/TransactionFilterResponse"
         "401":
           description: Unauthorized
         "400":
@@ -170,7 +58,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /private-app/transactions/actions/filter-cursor:
     post:
@@ -180,7 +68,7 @@ paths:
       description: filter transactions with cursor
       operationId: filterTransactionsWithCursor
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       requestBody:
         description: filter request
         required: true
@@ -194,7 +82,7 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/TransactionFilterResponse'
+                $ref: "#/components/schemas/TransactionFilterResponse"
         "401":
           description: Unauthorized
         "400":
@@ -210,7 +98,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /private-app/bank-accounts/actions/filter:
     post:
@@ -220,7 +108,7 @@ paths:
       description: filter bank accounts
       operationId: filterBankAccounts
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       requestBody:
         description: filter request
         required: true
@@ -234,7 +122,7 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/BankAccountFilterResponse'
+                $ref: "#/components/schemas/BankAccountFilterResponse"
         "401":
           description: Unauthorized
         "400":
@@ -250,7 +138,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 
   /private-app/bank-accounts/actions/filter-cursor:
     post:
@@ -260,7 +148,7 @@ paths:
       description: filter bank accounts with cursor
       operationId: filterBankAccountsWithCursor
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       requestBody:
         description: filter request
         required: true
@@ -274,7 +162,7 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/BankAccountFilterResponse'
+                $ref: "#/components/schemas/BankAccountFilterResponse"
         "401":
           description: Unauthorized
         "400":
@@ -290,7 +178,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     LoginUserResponse:
@@ -299,27 +187,27 @@ components:
         id:
           type: string
           format: uuid
-          example: 'b644b627-222f-473b-949d-2b880884a955'
+          example: "b644b627-222f-473b-949d-2b880884a955"
         email:
           type: string
-          example: 'abc@example.com'
+          example: "abc@example.com"
         username:
           type: string
-          example: 'join.wick'
+          example: "join.wick"
         name:
           type: string
-          example: 'Join Wick'
+          example: "Join Wick"
         roles:
           type: array
           items:
-            $ref: '#/components/schemas/UserRoleEnum'
+            $ref: "#/components/schemas/UserRoleEnum"
     TransactionFilterResponse:
       type: object
       properties:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/TransactionDetail'
+            $ref: "#/components/schemas/TransactionDetail"
         foundItems:
           type: integer
           format: int64
@@ -347,16 +235,16 @@ components:
           type: string
           format: date
         domain:
-          $ref: '#/components/schemas/DomainEnum'
+          $ref: "#/components/schemas/DomainEnum"
         location:
           type: string
         value:
           type: number
           format: decimal
         status:
-          $ref: '#/components/schemas/TransactionStatusEnum'
+          $ref: "#/components/schemas/TransactionStatusEnum"
         paymentMethod:
-          $ref: '#/components/schemas/PaymentMethodEnum'
+          $ref: "#/components/schemas/PaymentMethodEnum"
         taxAmount:
           type: number
           format: decimal
@@ -370,16 +258,16 @@ components:
           type: string
           format: date
         domain:
-          $ref: '#/components/schemas/DomainEnum'
+          $ref: "#/components/schemas/DomainEnum"
         location:
           type: string
         value:
           type: number
           format: decimal
         status:
-          $ref: '#/components/schemas/TransactionStatusEnum'
+          $ref: "#/components/schemas/TransactionStatusEnum"
         paymentMethod:
-          $ref: '#/components/schemas/PaymentMethodEnum'
+          $ref: "#/components/schemas/PaymentMethodEnum"
         taxAmount:
           type: number
           format: decimal
@@ -387,7 +275,7 @@ components:
           type: number
           format: decimal
         pagination:
-          $ref: '#/components/schemas/PaginationRequest'
+          $ref: "#/components/schemas/PaginationRequest"
     PaginationRequest:
       type: object
       properties:
@@ -400,7 +288,7 @@ components:
         sortBy:
           type: string
         sortOrder:
-          $ref: '#/components/schemas/SortOrderEnum'
+          $ref: "#/components/schemas/SortOrderEnum"
         previousPageToken:
           type: integer
           format: int64
@@ -460,7 +348,7 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/BankAccountDetail'
+            $ref: "#/components/schemas/BankAccountDetail"
         foundItems:
           type: integer
           format: int64
@@ -503,16 +391,16 @@ components:
         accountNumber:
           type: string
         accountType:
-          $ref: '#/components/schemas/AccountTypeEnum'
+          $ref: "#/components/schemas/AccountTypeEnum"
         ifscCode:
           type: string
         balance:
           type: number
           format: decimal
         currency:
-          $ref: '#/components/schemas/CurrencyEnum'
+          $ref: "#/components/schemas/CurrencyEnum"
         status:
-          $ref: '#/components/schemas/AccountStatusEnum'
+          $ref: "#/components/schemas/AccountStatusEnum"
     BankAccountFilterRequest:
       type: object
       properties:
@@ -527,13 +415,13 @@ components:
         accountNumber:
           type: string
         accountType:
-          $ref: '#/components/schemas/AccountTypeEnum'
+          $ref: "#/components/schemas/AccountTypeEnum"
         ifscCode:
           type: string
         status:
-          $ref: '#/components/schemas/AccountStatusEnum'
+          $ref: "#/components/schemas/AccountStatusEnum"
         pagination:
-          $ref: '#/components/schemas/PaginationRequest'
+          $ref: "#/components/schemas/PaginationRequest"
     AccountTypeEnum:
       type: string
       enum:

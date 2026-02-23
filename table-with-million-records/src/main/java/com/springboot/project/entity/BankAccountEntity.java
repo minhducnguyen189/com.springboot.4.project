@@ -28,7 +28,8 @@ import org.hibernate.annotations.Generated;
 @Table(name = "bank_account")
 public class BankAccountEntity extends BaseEntity {
 
-    @Serial private static final long serialVersionUID = -7913273199791663507L;
+    @Serial
+    private static final long serialVersionUID = -7913273199791663507L;
 
     @Generated
     @Column(name = "sequence_number")
@@ -83,10 +84,6 @@ public class BankAccountEntity extends BaseEntity {
     private AccountStatusEnumEntity status;
 
     @Fetch(FetchMode.SUBSELECT)
-    @OneToMany(
-            fetch = FetchType.LAZY,
-            cascade = CascadeType.ALL,
-            orphanRemoval = true,
-            mappedBy = "bankAccount")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true, mappedBy = "bankAccount")
     private List<TransactionDetailEntity> transactions;
 }
