@@ -1,5 +1,15 @@
 {
-    "maven.view": "hierarchical",
-    "java.configuration.updateBuildConfiguration": "automatic",
-    "java.dependency.packagePresentation": "hierarchical"
+  "maven.view": "hierarchical",
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.dependency.packagePresentation": "hierarchical",
+  "java.configuration.runtimes": [
+    {
+      "name": "JavaSE-25",
+      "path": "/var/home/duc/boxes/dev/.local/asdf/bin/installs/java/adoptopenjdk-25.0.2+10.0.LTS",
+      "default": true
+    }
+  ],
+  "java.configuration.source": "25",
+  "java.configuration.target": "25",
+  "java.compile.nullAnalysis.mode": "automatic"
 }
