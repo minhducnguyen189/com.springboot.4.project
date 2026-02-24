@@ -4,11 +4,11 @@
 
 This is a **Spring Boot multi-module Maven project** focused on studying patterns for handling large-scale data (millions of records) efficiently. The project currently has one module:
 
-| Module                       | Description                                                                                                                    |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `table-with-million-records` | REST API demonstrating efficient querying of large PostgreSQL tables using offset-based pagination and cursor-based pagination |
+| Module                       | Description                                                                                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `table-with-million-records` | REST API demonstrating efficient querying and creation of records in large PostgreSQL tables using offset-based pagination and cursor-based pagination |
 
-> **Note:** The project has a fully implemented layered architecture: controllers, services, repositories, entities, mappers, exception handling, and unit tests are all in place. Authentication endpoints remain stubbed (`TODO`).
+> **Note:** The project has a fully implemented layered architecture: controllers, services, repositories, entities, mappers, exception handling, and unit tests are all in place.
 
 ---
 
@@ -18,7 +18,6 @@ This is a **Spring Boot multi-module Maven project** focused on studying pattern
 | ------------------------ | ------------------------------------ | ------------------------ |
 | Language                 | Java (AdoptOpenJDK)                  | 25.0.2+10.0.LTS          |
 | Framework                | Spring Boot                          | 4.0.3                    |
-| Security                 | Spring Boot Starter Security         | 4.0.3                    |
 | Database                 | PostgreSQL (driver)                  | 42.7.10                  |
 | ORM                      | Spring Data JPA / Hibernate          | via Spring Boot          |
 | Migrations               | Flyway                               | 12.0.2                   |
@@ -29,7 +28,6 @@ This is a **Spring Boot multi-module Maven project** focused on studying pattern
 | Boilerplate              | Lombok                               | 1.18.42                  |
 | Formatting               | Spotless + Google Java Format (AOSP) | 2.44.4 / 1.26.0          |
 | Testing                  | JUnit 5 + Mockito Core               | via Spring Boot / 5.21.0 |
-| Testing (Security)       | Spring Security Test                 | 6.5.2                    |
 | Null Safety              | JSpecify                             | 1.0.0                    |
 | Utilities                | Apache Commons Lang3                 | 3.20.0                   |
 | Utilities                | Apache Commons BeanUtils             | 1.11.0                   |
@@ -56,16 +54,14 @@ com.springboot.4.project/              ← root (parent POM)
 ├── .tool-versions                     ← asdf version pinning (Java 25, Maven 3.9.12)
 ├── .gitignore
 └── table-with-million-records/        ← child module
-    ├── pom.xml
+    ├── pom.xml                        ← includes spring-boot-dependencies BOM in dependencyManagement
     └── src/
         ├── main/
         │   ├── java/com/springboot/project/
         │   │   ├── TableWithMillionRecordApp.java       ← Spring Boot entry point
         │   │   ├── controller/
-        │   │   │   ├── AuthenticationController.java    ← authentication endpoints (stubbed)
         │   │   │   ├── BankAccountController.java       ← bank account filter endpoints
-        │   │   │   ├── LoginUserController.java         ← current user endpoint
-        │   │   │   └── TransactionController.java       ← transaction filter endpoints
+        │   │   │   └── TransactionController.java       ← transaction create + filter endpoints
         │   │   ├── entity/
         │   │   │   ├── BaseEntity.java                  ← @MappedSuperclass (id, audit fields)
         │   │   │   ├── BankAccountEntity.java
@@ -91,8 +87,7 @@ com.springboot.4.project/              ← root (parent POM)
         │   │   │   └── TransactionRepository.java       ← JpaRepository + JpaSpecificationExecutor
         │   │   ├── service/
         │   │   │   ├── BankAccountService.java          ← offset & cursor pagination filtering
-        │   │   │   ├── LoginUserService.java            ← upsert & getCurrentLoginUser
-        │   │   │   └── TransactionService.java          ← offset & cursor pagination filtering
+        │   │   │   └── TransactionService.java          ← create transaction + offset & cursor pagination filtering
         │   │   └── shared/
         │   │       └── SpecificationHelper.java         ← JPA Specification & pagination utilities
         │   └── resources/
@@ -104,7 +99,6 @@ com.springboot.4.project/              ← root (parent POM)
         ├── test/
         │   └── java/com/springboot/project/service/
         │       ├── BankAccountServiceTest.java          ← 7 tests (offset + cursor pagination)
-        │       ├── LoginUserServiceTest.java            ← 6 tests (upsert + getCurrentUser scenarios)
         │       └── TransactionServiceTest.java          ← 7 tests (offset + cursor pagination)
         └── generated/                 ← auto-generated by openapi-generator-maven-plugin (cleaned on mvn clean)
 ```
@@ -166,7 +160,7 @@ All entities extend `BaseEntity` which provides:
 
 - `id` (UUID, auto-generated)
 - `createdAt`, `createdBy`, `updatedAt`, `updatedBy` (audit columns)
-- `@PrePersist` hook that sets audit fields from `SecurityContextHolder`
+- `@PrePersist` hook that sets audit fields (defaults `createdBy`/`updatedBy` to `"SYSTEM"`)
 
 Sequences used:
 
@@ -189,29 +183,28 @@ The migration uses a single DO block to:
 
 Base URL: `/api`
 
-| Tag            | Method | Path                                               | Description                                          |
-| -------------- | ------ | -------------------------------------------------- | ---------------------------------------------------- |
-| authentication | GET    | `/private-app/actions/authenticate`                | Redirect login (optional `redirectPath` query param) |
-| authentication | GET    | `/private-app/actions/refresh-token`               | Refresh token redirect                               |
-| login-user     | GET    | `/private-app/users/actions/current`               | Get current logged-in user                           |
-| transaction    | POST   | `/private-app/transactions/actions/filter`         | Filter transactions (offset pagination)              |
-| transaction    | POST   | `/private-app/transactions/actions/filter-cursor`  | Filter transactions (cursor pagination)              |
-| bank-account   | POST   | `/private-app/bank-accounts/actions/filter`        | Filter bank accounts (offset pagination)             |
-| bank-account   | POST   | `/private-app/bank-accounts/actions/filter-cursor` | Filter bank accounts (cursor pagination)             |
+| Tag          | Method | Path                                               | Description                              |
+| ------------ | ------ | -------------------------------------------------- | ---------------------------------------- |
+| transaction  | POST   | `/private-app/transactions`                        | Create a new transaction                 |
+| transaction  | POST   | `/private-app/transactions/actions/filter`         | Filter transactions (offset pagination)  |
+| transaction  | POST   | `/private-app/transactions/actions/filter-cursor`  | Filter transactions (cursor pagination)  |
+| bank-account | POST   | `/private-app/bank-accounts/actions/filter`        | Filter bank accounts (offset pagination) |
+| bank-account | POST   | `/private-app/bank-accounts/actions/filter-cursor` | Filter bank accounts (cursor pagination) |
 
 ### API Models (from OpenAPI spec)
 
-| Schema                      | Description                                                                                                                                |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `LoginUserResponse`         | User info: id (UUID), email, username, name, roles (ADMIN/USER)                                                                            |
-| `TransactionFilterRequest`  | Filter by date, domain, location, value, status, paymentMethod, taxAmount, netValue + `PaginationRequest`                                  |
-| `TransactionFilterResponse` | Paginated list of `TransactionDetail` with foundItems, totalItems, previousPageToken, nextPageToken                                        |
-| `TransactionDetail`         | Full transaction record (id, transactionNumber, sequenceNumber, date, domain, location, value, status, paymentMethod, taxAmount, netValue) |
-| `BankAccountFilterRequest`  | Filter by firstName, lastName, phone, email, accountNumber, accountType, ifscCode, status + `PaginationRequest`                            |
-| `BankAccountFilterResponse` | Paginated list of `BankAccountDetail` with foundItems, totalItems, previousPageToken, nextPageToken                                        |
-| `BankAccountDetail`         | Full account record (id, sequenceNumber, name, contact, address, accountNumber, accountType, ifscCode, balance, currency, status)          |
-| `PaginationRequest`         | pageSize, pageNumber, sortBy, sortOrder (ASC/DESC), previousPageToken, nextPageToken                                                       |
-| `ErrorResponse`             | Standard error: code, status, message, path, timestamp                                                                                     |
+| Schema                      | Description                                                                                                                                                                                  |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CreateTransactionRequest`  | Create transaction: date, domain, location, value, status, paymentMethod, taxAmount, netValue, bankAccountId (required: date, domain, location, value, status, paymentMethod, bankAccountId) |
+| `TransactionFilterRequest`  | Filter by date, domain, location, value, status, paymentMethod, taxAmount, netValue + `PaginationRequest`                                                                                    |
+| `TransactionFilterResponse` | Paginated list of `TransactionDetail` with foundItems, totalItems, previousPageToken, nextPageToken                                                                                          |
+| `TransactionDetail`         | Full transaction record (id, transactionNumber, sequenceNumber, date, domain, location, value, status, paymentMethod, taxAmount, netValue, bankAccountId)                                    |
+| `BankAccountFilterRequest`  | Filter by firstName, lastName, phone, email, accountNumber, accountType, ifscCode, status + `PaginationRequest`                                                                              |
+| `BankAccountFilterResponse` | Paginated list of `BankAccountDetail` with foundItems, totalItems, previousPageToken, nextPageToken                                                                                          |
+| `BankAccountDetail`         | Full account record (id, sequenceNumber, name, contact, address, accountNumber, accountType, ifscCode, balance, currency, status)                                                            |
+| `LoginUserResponse`         | User info: id (UUID), email, username, name, roles (ADMIN/USER)                                                                                                                              |
+| `PaginationRequest`         | pageSize, pageNumber, sortBy, sortOrder (ASC/DESC), previousPageToken, nextPageToken                                                                                                         |
+| `ErrorResponse`             | Standard error: code, status, message, path, timestamp                                                                                                                                       |
 
 ### Enums (Generated Models)
 
@@ -235,7 +228,6 @@ Swagger UI is available at: `http://localhost:7070/swagger-ui/index.html`
 ### Test Framework
 
 - **JUnit 5** (via `spring-boot-starter-test`) + **Mockito Core 5.21.0**
-- **Spring Security Test** for mocking `SecurityContextHolder`
 - Test naming convention: **snake_case** following `should_<action>_when_<condition>` pattern
 
 ### Test Coverage
@@ -244,7 +236,6 @@ Swagger UI is available at: `http://localhost:7070/swagger-ui/index.html`
 | ------------------------ | ----- | ------------------------------------------------------------------------------------------------ |
 | `BankAccountServiceTest` | 7     | Offset pagination (filter, empty, sorting) + Cursor pagination (no token, next, previous, empty) |
 | `TransactionServiceTest` | 7     | Offset pagination (filter, empty, sorting) + Cursor pagination (no token, next, previous, empty) |
-| `LoginUserServiceTest`   | 6     | Upsert (create/update) + getCurrentUser (authenticated, not found, null auth, wrong principal)   |
 
 ### Running Tests
 
@@ -347,7 +338,7 @@ The compiler plugin annotation processor path order must be: **MapStruct → Lom
 - **Offset pagination** vs **Cursor pagination**: Both strategies are exposed for benchmarking performance on large datasets
 - **JPA Specifications + QBE**: Dynamic filtering combines Query by Example with JPA Specification API
 - **Flyway migrations**: Versioned SQL files in `src/main/resources/db/migration/`
-- **Bearer token security**: Endpoints (except authentication) require `bearerAuth` security scheme
+- **Bearer token security**: Endpoints require `bearerAuth` security scheme
 - **Global Exception Handling**: `@ControllerAdvice` returns standardized `ErrorResponseModel`
 
 ---

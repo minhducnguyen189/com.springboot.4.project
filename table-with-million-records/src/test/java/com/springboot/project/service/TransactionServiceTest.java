@@ -11,6 +11,7 @@ import com.springboot.project.generated.model.PaginationRequestModel;
 import com.springboot.project.generated.model.SortOrderEnumModel;
 import com.springboot.project.generated.model.TransactionFilterRequestModel;
 import com.springboot.project.generated.model.TransactionFilterResponseModel;
+import com.springboot.project.repository.BankAccountRepository;
 import com.springboot.project.repository.TransactionRepository;
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -30,6 +31,9 @@ class TransactionServiceTest {
 
         @Mock
         private TransactionRepository transactionRepository;
+
+        @Mock
+        private BankAccountRepository bankAccountRepository;
 
         @InjectMocks
         private TransactionService transactionService;
