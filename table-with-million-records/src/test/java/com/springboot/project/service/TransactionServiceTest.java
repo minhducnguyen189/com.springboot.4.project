@@ -4,18 +4,27 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import com.springboot.project.entity.BankAccountEntity;
 import com.springboot.project.entity.TransactionDetailEntity;
 import com.springboot.project.entity.TransactionStatusEnumEntity;
 import com.springboot.project.entity.PaymentMethodEnumEntity;
+import com.springboot.project.exception.ResourceNotFoundException;
+import com.springboot.project.generated.model.DomainEnumModel;
 import com.springboot.project.generated.model.PaginationRequestModel;
+import com.springboot.project.generated.model.PaymentMethodEnumModel;
 import com.springboot.project.generated.model.SortOrderEnumModel;
 import com.springboot.project.generated.model.TransactionFilterRequestModel;
 import com.springboot.project.generated.model.TransactionFilterResponseModel;
+import com.springboot.project.generated.model.TransactionStatusEnumModel;
+import com.springboot.project.generated.model.UpdateTransactionRequestModel;
 import com.springboot.project.repository.BankAccountRepository;
 import com.springboot.project.repository.TransactionRepository;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -228,5 +237,158 @@ class TransactionServiceTest {
                 assertEquals(0L, response.getFoundItems());
                 assertNull(response.getNextPageToken());
                 assertNull(response.getPreviousPageToken());
+        }
+
+        // --- updateTransaction ---
+
+        @Test
+        void should_update_transaction_when_valid_request() {
+                // given
+                UUID transactionId = UUID.randomUUID();
+                UUID bankAccountId = UUID.randomUUID();
+
+                UpdateTransactionRequestModel updateRequest = new UpdateTransactionRequestModel()
+                                .date(LocalDate.of(2026, 3, 7))
+                                .domain(DomainEnumModel.RETAIL)
+                                .location("Berlin")
+                                .value(BigDecimal.valueOf(2500))
+                                .status(TransactionStatusEnumModel.SUCCESS)
+                                .paymentMethod(PaymentMethodEnumModel.CARD)
+                                .taxAmount(BigDecimal.valueOf(250))
+                                .netValue(BigDecimal.valueOf(2250))
+                                .bankAccountId(bankAccountId);
+
+                TransactionDetailEntity existingEntity = new TransactionDetailEntity();
+                existingEntity.setId(transactionId);
+                existingEntity.setLocation("Old Location");
+                existingEntity.setSequenceNumber(42L);
+
+                BankAccountEntity bankAccountEntity = new BankAccountEntity();
+                bankAccountEntity.setId(bankAccountId);
+
+                TransactionDetailEntity savedEntity = new TransactionDetailEntity();
+                savedEntity.setId(transactionId);
+                savedEntity.setLocation("Berlin");
+                savedEntity.setSequenceNumber(42L);
+                savedEntity.setBankAccount(bankAccountEntity);
+                savedEntity.setValue(BigDecimal.valueOf(2500));
+
+                when(transactionRepository.findById(transactionId))
+                                .thenReturn(Optional.of(existingEntity));
+                when(bankAccountRepository.findById(bankAccountId))
+                                .thenReturn(Optional.of(bankAccountEntity));
+                when(transactionRepository.save(any(TransactionDetailEntity.class)))
+                                .thenReturn(savedEntity);
+
+                // when
+                var response = transactionService.updateTransaction(transactionId, updateRequest);
+
+                // then
+                assertNotNull(response);
+                assertEquals("Berlin", response.getLocation());
+                assertEquals(bankAccountId, response.getBankAccountId());
+                verify(transactionRepository).findById(transactionId);
+                verify(bankAccountRepository).findById(bankAccountId);
+                verify(transactionRepository).save(any(TransactionDetailEntity.class));
+        }
+
+        @Test
+        void should_throw_exception_when_transaction_not_found_on_update() {
+                // given
+                UUID transactionId = UUID.randomUUID();
+                UUID bankAccountId = UUID.randomUUID();
+
+                UpdateTransactionRequestModel updateRequest = new UpdateTransactionRequestModel()
+                                .date(LocalDate.of(2026, 3, 7))
+                                .domain(DomainEnumModel.RETAIL)
+                                .location("Berlin")
+                                .value(BigDecimal.valueOf(2500))
+                                .status(TransactionStatusEnumModel.SUCCESS)
+                                .paymentMethod(PaymentMethodEnumModel.CARD)
+                                .bankAccountId(bankAccountId);
+
+                when(transactionRepository.findById(transactionId)).thenReturn(Optional.empty());
+
+                // when & then
+                assertThrows(
+                                ResourceNotFoundException.class,
+                                () -> transactionService.updateTransaction(transactionId, updateRequest));
+
+                verify(transactionRepository).findById(transactionId);
+                verify(bankAccountRepository, never()).findById(any());
+                verify(transactionRepository, never()).save(any());
+        }
+
+        @Test
+        void should_throw_exception_when_bank_account_not_found_on_update() {
+                // given
+                UUID transactionId = UUID.randomUUID();
+                UUID bankAccountId = UUID.randomUUID();
+
+                UpdateTransactionRequestModel updateRequest = new UpdateTransactionRequestModel()
+                                .date(LocalDate.of(2026, 3, 7))
+                                .domain(DomainEnumModel.RETAIL)
+                                .location("Berlin")
+                                .value(BigDecimal.valueOf(2500))
+                                .status(TransactionStatusEnumModel.SUCCESS)
+                                .paymentMethod(PaymentMethodEnumModel.CARD)
+                                .bankAccountId(bankAccountId);
+
+                TransactionDetailEntity existingEntity = new TransactionDetailEntity();
+                existingEntity.setId(transactionId);
+
+                when(transactionRepository.findById(transactionId))
+                                .thenReturn(Optional.of(existingEntity));
+                when(bankAccountRepository.findById(bankAccountId)).thenReturn(Optional.empty());
+
+                // when & then
+                assertThrows(
+                                ResourceNotFoundException.class,
+                                () -> transactionService.updateTransaction(transactionId, updateRequest));
+
+                verify(transactionRepository).findById(transactionId);
+                verify(bankAccountRepository).findById(bankAccountId);
+                verify(transactionRepository, never()).save(any());
+        }
+
+        // --- deleteTransaction ---
+
+        @Test
+        void should_soft_delete_transaction_when_valid_id() {
+                // given
+                UUID transactionId = UUID.randomUUID();
+
+                TransactionDetailEntity existingEntity = new TransactionDetailEntity();
+                existingEntity.setId(transactionId);
+                existingEntity.setStatus(TransactionStatusEnumEntity.SUCCESS);
+
+                when(transactionRepository.findById(transactionId))
+                                .thenReturn(Optional.of(existingEntity));
+                when(transactionRepository.save(any(TransactionDetailEntity.class)))
+                                .thenReturn(existingEntity);
+
+                // when
+                transactionService.deleteTransaction(transactionId);
+
+                // then
+                assertEquals(TransactionStatusEnumEntity.DELETED, existingEntity.getStatus());
+                verify(transactionRepository).findById(transactionId);
+                verify(transactionRepository).save(existingEntity);
+        }
+
+        @Test
+        void should_throw_exception_when_transaction_not_found_on_delete() {
+                // given
+                UUID transactionId = UUID.randomUUID();
+
+                when(transactionRepository.findById(transactionId)).thenReturn(Optional.empty());
+
+                // when & then
+                assertThrows(
+                                ResourceNotFoundException.class,
+                                () -> transactionService.deleteTransaction(transactionId));
+
+                verify(transactionRepository).findById(transactionId);
+                verify(transactionRepository, never()).save(any());
         }
 }

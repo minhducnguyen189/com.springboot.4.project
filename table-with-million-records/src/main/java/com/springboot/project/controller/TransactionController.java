@@ -5,7 +5,9 @@ import com.springboot.project.generated.model.CreateTransactionRequestModel;
 import com.springboot.project.generated.model.TransactionDetailModel;
 import com.springboot.project.generated.model.TransactionFilterRequestModel;
 import com.springboot.project.generated.model.TransactionFilterResponseModel;
+import com.springboot.project.generated.model.UpdateTransactionRequestModel;
 import com.springboot.project.service.TransactionService;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +28,20 @@ public class TransactionController implements TransactionApi {
             CreateTransactionRequestModel createTransactionRequestModel) {
         TransactionDetailModel response = transactionService.createTransaction(createTransactionRequestModel);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Override
+    public ResponseEntity<TransactionDetailModel> updateTransaction(
+            UUID transactionId, UpdateTransactionRequestModel updateTransactionRequestModel) {
+        TransactionDetailModel response = transactionService.updateTransaction(
+                transactionId, updateTransactionRequestModel);
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteTransaction(UUID transactionId) {
+        transactionService.deleteTransaction(transactionId);
+        return ResponseEntity.noContent().build();
     }
 
     @Override

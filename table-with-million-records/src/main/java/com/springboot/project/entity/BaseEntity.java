@@ -1,12 +1,12 @@
 package com.springboot.project.entity;
 
-import com.springboot.project.model.LoginUserModel;
 import jakarta.persistence.Column;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.MappedSuperclass;
 import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
@@ -47,6 +47,12 @@ public class BaseEntity implements Serializable {
         String currentUser = this.getCurrentUser();
         this.createdBy = currentUser;
         this.updatedBy = currentUser;
+    }
+
+    @PreUpdate
+    private void preUpdate() {
+        this.updatedAt = Instant.now();
+        this.updatedBy = this.getCurrentUser();
     }
 
     private String getCurrentUser() {

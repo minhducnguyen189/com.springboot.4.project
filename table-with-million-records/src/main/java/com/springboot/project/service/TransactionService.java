@@ -2,17 +2,20 @@ package com.springboot.project.service;
 
 import com.springboot.project.entity.BankAccountEntity;
 import com.springboot.project.entity.TransactionDetailEntity;
+import com.springboot.project.entity.TransactionStatusEnumEntity;
 import com.springboot.project.exception.ResourceNotFoundException;
 import com.springboot.project.generated.model.CreateTransactionRequestModel;
 import com.springboot.project.generated.model.TransactionDetailModel;
 import com.springboot.project.generated.model.TransactionFilterRequestModel;
 import com.springboot.project.generated.model.TransactionFilterResponseModel;
+import com.springboot.project.generated.model.UpdateTransactionRequestModel;
 import com.springboot.project.mapper.TransactionDetailMapper;
 import com.springboot.project.repository.BankAccountRepository;
 import com.springboot.project.repository.TransactionRepository;
 import com.springboot.project.shared.SpecificationHelper;
 import java.text.MessageFormat;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,6 +25,7 @@ import org.springframework.stereotype.Service;
 public class TransactionService {
 
         private static final String BANK_ACCOUNT_NOT_FOUND = "Bank account with id {0} not found";
+        private static final String TRANSACTION_NOT_FOUND = "Transaction with id {0} not found";
 
         private final TransactionRepository transactionRepository;
         private final BankAccountRepository bankAccountRepository;
@@ -51,6 +55,43 @@ public class TransactionService {
 
                 TransactionDetailEntity savedEntity = transactionRepository.save(entity);
                 return TransactionDetailMapper.MAPPER.toTransactionDetail(savedEntity);
+        }
+
+        public TransactionDetailModel updateTransaction(
+                        UUID transactionId, UpdateTransactionRequestModel updateRequest) {
+                TransactionDetailEntity existingEntity = transactionRepository
+                                .findById(transactionId)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                MessageFormat.format(
+                                                                                TRANSACTION_NOT_FOUND, transactionId)));
+
+                BankAccountEntity bankAccount = bankAccountRepository
+                                .findById(updateRequest.getBankAccountId())
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                MessageFormat.format(
+                                                                                BANK_ACCOUNT_NOT_FOUND,
+                                                                                updateRequest.getBankAccountId())));
+
+                TransactionDetailMapper.MAPPER.updateTransactionDetailEntity(
+                                updateRequest, existingEntity);
+                existingEntity.setBankAccount(bankAccount);
+
+                TransactionDetailEntity savedEntity = transactionRepository.save(existingEntity);
+                return TransactionDetailMapper.MAPPER.toTransactionDetail(savedEntity);
+        }
+
+        public void deleteTransaction(UUID transactionId) {
+                TransactionDetailEntity existingEntity = transactionRepository
+                                .findById(transactionId)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                MessageFormat.format(
+                                                                                TRANSACTION_NOT_FOUND, transactionId)));
+
+                existingEntity.setStatus(TransactionStatusEnumEntity.DELETED);
+                transactionRepository.save(existingEntity);
         }
 
         public TransactionFilterResponseModel filterTransactions(
