@@ -1,0 +1,23 @@
+meta {
+  name: Delete Transaction
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/private-app/transactions/:transactionId
+  body: none
+  auth: inherit
+}
+
+params:path {
+  transactionId: 00000000-0000-0000-0000-000000000001
+}
+
+settings {
+  encodeUrl: true
+}
+
+docs {
+  Soft delete a transaction by setting its status to DELETED.
+}

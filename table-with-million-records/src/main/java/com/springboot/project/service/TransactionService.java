@@ -65,6 +65,18 @@ public class TransactionService {
                                                 () -> new ResourceNotFoundException(
                                                                 MessageFormat.format(
                                                                                 TRANSACTION_NOT_FOUND, transactionId)));
+
+                if (updateRequest.getBankAccountId() != null) {
+                        BankAccountEntity bankAccount = bankAccountRepository
+                                        .findById(updateRequest.getBankAccountId())
+                                        .orElseThrow(
+                                                        () -> new ResourceNotFoundException(
+                                                                        MessageFormat.format(
+                                                                                        "Bank account with id {0} not found",
+                                                                                        updateRequest.getBankAccountId())));
+                        existingEntity.setBankAccount(bankAccount);
+                }
+
                 TransactionDetailMapper.MAPPER.updateTransactionDetailEntity(
                                 updateRequest, existingEntity);
 
@@ -97,14 +109,15 @@ public class TransactionService {
                 List<TransactionDetailModel> data = TransactionDetailMapper.MAPPER.toTransactionDetails(pages.toList());
                 return new TransactionFilterResponseModel()
                                 .data(data)
-                                .foundItems((long) pages.getNumberOfElements())
+                                .foundItems(Long.valueOf(pages.getNumberOfElements()))
                                 .totalItems(pages.getTotalElements());
         }
 
         public TransactionFilterResponseModel filterTransactionsWithCursor(
                         TransactionFilterRequestModel filterRequest) {
                 assert filterRequest.getPagination() != null;
-                Pageable pageable = SpecificationHelper.buildPageableForCursor(filterRequest.getPagination());
+                Pageable pageable = SpecificationHelper.buildPageableForCursor(filterRequest.getPagination(),
+                                "sequenceNumber");
 
                 Specification<TransactionDetailEntity> specification = SpecificationHelper
                                 .init(this.buildTransactionDetailExample(filterRequest));
@@ -113,30 +126,35 @@ public class TransactionService {
                 Long nextPageToken = pagination != null ? pagination.getNextPageToken() : null;
                 Long previousPageToken = pagination != null ? pagination.getPreviousPageToken() : null;
 
+                Sort sort = pageable.getSort();
+
                 if (nextPageToken != null) {
                         specification = specification.and(
                                         SpecificationHelper.cursorPagination(
-                                                        pageable.getSort(), "sequenceNumber", nextPageToken, false));
+                                                        sort, "sequenceNumber", nextPageToken, false));
                 }
 
                 if (previousPageToken != null) {
                         specification = specification.and(
                                         SpecificationHelper.cursorPagination(
-                                                        pageable.getSort(),
+                                                        sort,
                                                         "sequenceNumber",
                                                         previousPageToken,
                                                         true));
-                        pageable = PageRequest.of(
-                                        pageable.getPageNumber(),
-                                        pageable.getPageSize(),
-                                        pageable.getSort().isSorted()
-                                                        ? pageable.getSort().descending()
-                                                        : pageable.getSort());
+                        if (sort.isSorted()) {
+                                sort = sort.descending();
+                        }
                 }
 
-                Page<TransactionDetailEntity> pages = transactionRepository.findAll(specification, pageable);
+                final Sort finalSort = sort;
+                final int pageSize = pageable.getPageSize();
+                List<TransactionDetailEntity> entities = transactionRepository.findBy(
+                                specification,
+                                q -> finalSort.isSorted() ? q.sortBy(finalSort).limit(pageSize).all()
+                                                : q.limit(pageSize).all());
 
-                List<TransactionDetailModel> data = TransactionDetailMapper.MAPPER.toTransactionDetails(pages.toList());
+                List<TransactionDetailModel> data = TransactionDetailMapper.MAPPER
+                                .toTransactionDetails(entities);
 
                 Long nextToken = null;
                 Long previousToken = null;
@@ -147,8 +165,7 @@ public class TransactionService {
 
                 return new TransactionFilterResponseModel()
                                 .data(data)
-                                .foundItems((long) data.size())
-                                .totalItems(pages.getTotalElements())
+                                .foundItems(Long.valueOf(data.size()))
                                 .previousPageToken(previousToken)
                                 .nextPageToken(nextToken);
         }

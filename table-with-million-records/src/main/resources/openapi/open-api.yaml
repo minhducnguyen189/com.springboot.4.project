@@ -187,7 +187,7 @@ paths:
         "200":
           description: filter transaction response
           content:
-            text/plain:
+            application/json:
               schema:
                 $ref: "#/components/schemas/TransactionFilterResponse"
         "401":
@@ -227,7 +227,7 @@ paths:
         "200":
           description: filter transaction response
           content:
-            text/plain:
+            application/json:
               schema:
                 $ref: "#/components/schemas/TransactionFilterResponse"
         "401":
@@ -267,7 +267,7 @@ paths:
         "200":
           description: filter bank account response
           content:
-            text/plain:
+            application/json:
               schema:
                 $ref: "#/components/schemas/BankAccountFilterResponse"
         "401":
@@ -307,7 +307,7 @@ paths:
         "200":
           description: filter bank account response
           content:
-            text/plain:
+            application/json:
               schema:
                 $ref: "#/components/schemas/BankAccountFilterResponse"
         "401":

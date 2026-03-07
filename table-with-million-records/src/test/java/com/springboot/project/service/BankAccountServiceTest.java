@@ -134,10 +134,9 @@ class BankAccountServiceTest {
                 BankAccountEntity entity = new BankAccountEntity();
                 entity.setFirstName("Alice");
                 entity.setSequenceNumber(100L);
-                Page<BankAccountEntity> page = new PageImpl<>(List.of(entity));
 
-                when(bankAccountRepository.findAll(any(Specification.class), any(Pageable.class)))
-                                .thenReturn(page);
+                when(bankAccountRepository.findBy(any(Specification.class), any()))
+                                .thenReturn(List.of(entity));
 
                 // when
                 BankAccountFilterResponseModel response = bankAccountService
@@ -160,10 +159,9 @@ class BankAccountServiceTest {
 
                 BankAccountEntity entity = new BankAccountEntity();
                 entity.setSequenceNumber(51L);
-                Page<BankAccountEntity> page = new PageImpl<>(List.of(entity));
 
-                when(bankAccountRepository.findAll(any(Specification.class), any(Pageable.class)))
-                                .thenReturn(page);
+                when(bankAccountRepository.findBy(any(Specification.class), any()))
+                                .thenReturn(List.of(entity));
 
                 // when
                 BankAccountFilterResponseModel response = bankAccountService
@@ -185,10 +183,9 @@ class BankAccountServiceTest {
 
                 BankAccountEntity entity = new BankAccountEntity();
                 entity.setSequenceNumber(99L);
-                Page<BankAccountEntity> page = new PageImpl<>(List.of(entity));
 
-                when(bankAccountRepository.findAll(any(Specification.class), any(Pageable.class)))
-                                .thenReturn(page);
+                when(bankAccountRepository.findBy(any(Specification.class), any()))
+                                .thenReturn(List.of(entity));
 
                 // when
                 BankAccountFilterResponseModel response = bankAccountService
@@ -208,10 +205,8 @@ class BankAccountServiceTest {
                 BankAccountFilterRequestModel filterRequest = new BankAccountFilterRequestModel()
                                 .pagination(pagination);
 
-                Page<BankAccountEntity> emptyPage = new PageImpl<>(Collections.emptyList());
-
-                when(bankAccountRepository.findAll(any(Specification.class), any(Pageable.class)))
-                                .thenReturn(emptyPage);
+                when(bankAccountRepository.findBy(any(Specification.class), any()))
+                                .thenReturn(Collections.emptyList());
 
                 // when
                 BankAccountFilterResponseModel response = bankAccountService

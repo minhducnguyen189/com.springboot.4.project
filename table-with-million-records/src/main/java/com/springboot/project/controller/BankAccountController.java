@@ -6,9 +6,11 @@ import com.springboot.project.generated.model.BankAccountFilterResponseModel;
 import com.springboot.project.service.BankAccountService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
+@RequestMapping("/api")
 public class BankAccountController implements BankAccountApi {
 
     private final BankAccountService bankAccountService;

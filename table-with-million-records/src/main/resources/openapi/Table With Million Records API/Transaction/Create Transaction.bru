@@ -1,0 +1,37 @@
+meta {
+  name: Create Transaction
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/private-app/transactions
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "date": "2026-03-07",
+    "domain": "RETAIL",
+    "location": "Ho Chi Minh City",
+    "value": 150000.00,
+    "status": "SUCCESS",
+    "paymentMethod": "CARD",
+    "taxAmount": 15000.00,
+    "netValue": 135000.00,
+    "bankAccountId": "00000000-0000-0000-0000-000000000001"
+  }
+}
+
+settings {
+  encodeUrl: true
+}
+
+docs {
+  Create a new transaction and save it into the database.
+}

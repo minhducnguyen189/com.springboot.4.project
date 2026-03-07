@@ -94,15 +94,18 @@ public final class SpecificationHelper {
         return pageable;
     }
 
-    public static Pageable buildPageableForCursor(PaginationRequestModel paginationRequest) {
+    public static Pageable buildPageableForCursor(PaginationRequestModel paginationRequest,
+            String defaultCursorProperty) {
         Integer size = paginationRequest.getPageSize();
         int pageSize = Objects.nonNull(size) ? size : 50;
 
-        Sort sort = Sort.unsorted();
+        Sort sort;
         if (paginationRequest.getSortBy() != null && paginationRequest.getSortOrder() != null) {
             sort = Sort.by(
                     Sort.Direction.valueOf(paginationRequest.getSortOrder().getValue()),
                     paginationRequest.getSortBy());
+        } else {
+            sort = Sort.by(Sort.Direction.ASC, defaultCursorProperty);
         }
 
         return PageRequest.of(0, pageSize, sort);
@@ -112,16 +115,12 @@ public final class SpecificationHelper {
             Sort sort, String idPropertyName, Long cursorValue, boolean isPrevious) {
 
         return (root, query, cb) -> {
-            if (sort == null || StringUtils.isBlank(idPropertyName) || cursorValue == null) {
+            if (StringUtils.isBlank(idPropertyName) || cursorValue == null) {
                 return cb.conjunction();
             }
 
-            Sort.Order order = sort.getOrderFor(idPropertyName);
-            if (order == null) {
-                return cb.conjunction();
-            }
-
-            boolean ascending = order.isAscending();
+            Sort.Order order = sort != null ? sort.getOrderFor(idPropertyName) : null;
+            boolean ascending = order == null || order.isAscending();
 
             if (isPrevious) {
                 ascending = !ascending;

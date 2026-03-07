@@ -1,6 +1,6 @@
 server:
   port: "7070"
-  forward-headers-strategy: 'framework'
+  forward-headers-strategy: "framework"
 spring:
   datasource:
     driverClassName: org.postgresql.Driver
@@ -10,7 +10,7 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     show-sql: true
-    open-in-view: true
+    open-in-view: false
     properties:
       hibernate:
         generate_statistics: true

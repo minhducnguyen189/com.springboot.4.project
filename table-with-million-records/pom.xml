@@ -189,9 +189,14 @@
                                 <useBeanValidation>true</useBeanValidation>
                                 <performBeanValidation>true</performBeanValidation>
                                 <useOptional>false</useOptional>
-                                <useSpringBoot3>true</useSpringBoot3>
+                                <useSpringBoot4>true</useSpringBoot4>
+                                <openApiNullable>false</openApiNullable>
+                                <useJackson3>true</useJackson3>
                                 <sourceFolder>java</sourceFolder>
                             </configOptions>
+                            <importMappings>
+                                <importMapping>Nullable=org.jspecify.annotations.Nullable</importMapping>
+                            </importMappings>
                         </configuration>
                     </execution>
                 </executions>

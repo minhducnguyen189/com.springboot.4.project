@@ -55,7 +55,8 @@ public class BankAccountService {
         public BankAccountFilterResponseModel filterBankAccountsWithCursor(
                         BankAccountFilterRequestModel filterRequest) {
                 assert filterRequest.getPagination() != null;
-                Pageable pageable = SpecificationHelper.buildPageableForCursor(filterRequest.getPagination());
+                Pageable pageable = SpecificationHelper.buildPageableForCursor(filterRequest.getPagination(),
+                                "sequenceNumber");
                 Specification<BankAccountEntity> specification = SpecificationHelper
                                 .init(this.buildBankAccountExample(filterRequest));
 
@@ -63,30 +64,35 @@ public class BankAccountService {
                 Long nextPageToken = pagination != null ? pagination.getNextPageToken() : null;
                 Long previousPageToken = pagination != null ? pagination.getPreviousPageToken() : null;
 
+                Sort sort = pageable.getSort();
+
                 if (nextPageToken != null) {
                         specification = specification.and(
                                         SpecificationHelper.cursorPagination(
-                                                        pageable.getSort(), "sequenceNumber", nextPageToken, false));
+                                                        sort, "sequenceNumber", nextPageToken, false));
                 }
 
                 if (previousPageToken != null) {
                         specification = specification.and(
                                         SpecificationHelper.cursorPagination(
-                                                        pageable.getSort(),
+                                                        sort,
                                                         "sequenceNumber",
                                                         previousPageToken,
                                                         true));
-                        pageable = PageRequest.of(
-                                        pageable.getPageNumber(),
-                                        pageable.getPageSize(),
-                                        pageable.getSort().isSorted()
-                                                        ? pageable.getSort().descending()
-                                                        : pageable.getSort());
+                        if (sort.isSorted()) {
+                                sort = sort.descending();
+                        }
                 }
 
-                Page<BankAccountEntity> pages = bankAccountRepository.findAll(specification, pageable);
+                final Sort finalSort = sort;
+                final int pageSize = pageable.getPageSize();
+                List<BankAccountEntity> entities = bankAccountRepository.findBy(
+                                specification,
+                                q -> finalSort.isSorted() ? q.sortBy(finalSort).limit(pageSize).all()
+                                                : q.limit(pageSize).all());
 
-                List<BankAccountDetailModel> data = BankAccountMapper.MAPPER.toBankAccountDetails(pages.toList());
+                List<BankAccountDetailModel> data = BankAccountMapper.MAPPER
+                                .toBankAccountDetails(entities);
 
                 Long nextToken = null;
                 Long previousToken = null;
@@ -98,7 +104,6 @@ public class BankAccountService {
                 return new BankAccountFilterResponseModel()
                                 .data(data)
                                 .foundItems((long) data.size())
-                                .totalItems(pages.getTotalElements())
                                 .previousPageToken(previousToken)
                                 .nextPageToken(nextToken);
         }

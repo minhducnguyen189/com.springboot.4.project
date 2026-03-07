@@ -149,10 +149,9 @@ class TransactionServiceTest {
                 TransactionDetailEntity entity = new TransactionDetailEntity();
                 entity.setSequenceNumber(200L);
                 entity.setLocation("London");
-                Page<TransactionDetailEntity> page = new PageImpl<>(List.of(entity));
 
-                when(transactionRepository.findAll(any(Specification.class), any(Pageable.class)))
-                                .thenReturn(page);
+                when(transactionRepository.findBy(any(Specification.class), any()))
+                                .thenReturn(List.of(entity));
 
                 // when
                 TransactionFilterResponseModel response = transactionService
@@ -175,10 +174,9 @@ class TransactionServiceTest {
 
                 TransactionDetailEntity entity = new TransactionDetailEntity();
                 entity.setSequenceNumber(101L);
-                Page<TransactionDetailEntity> page = new PageImpl<>(List.of(entity));
 
-                when(transactionRepository.findAll(any(Specification.class), any(Pageable.class)))
-                                .thenReturn(page);
+                when(transactionRepository.findBy(any(Specification.class), any()))
+                                .thenReturn(List.of(entity));
 
                 // when
                 TransactionFilterResponseModel response = transactionService
@@ -200,10 +198,9 @@ class TransactionServiceTest {
 
                 TransactionDetailEntity entity = new TransactionDetailEntity();
                 entity.setSequenceNumber(199L);
-                Page<TransactionDetailEntity> page = new PageImpl<>(List.of(entity));
 
-                when(transactionRepository.findAll(any(Specification.class), any(Pageable.class)))
-                                .thenReturn(page);
+                when(transactionRepository.findBy(any(Specification.class), any()))
+                                .thenReturn(List.of(entity));
 
                 // when
                 TransactionFilterResponseModel response = transactionService
@@ -223,10 +220,8 @@ class TransactionServiceTest {
                 TransactionFilterRequestModel filterRequest = new TransactionFilterRequestModel()
                                 .pagination(pagination);
 
-                Page<TransactionDetailEntity> emptyPage = new PageImpl<>(Collections.emptyList());
-
-                when(transactionRepository.findAll(any(Specification.class), any(Pageable.class)))
-                                .thenReturn(emptyPage);
+                when(transactionRepository.findBy(any(Specification.class), any()))
+                                .thenReturn(Collections.emptyList());
 
                 // when
                 TransactionFilterResponseModel response = transactionService

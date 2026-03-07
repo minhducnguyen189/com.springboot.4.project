@@ -1,0 +1,33 @@
+meta {
+  name: Filter Transactions (Offset Pagination)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/private-app/transactions/actions/filter
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "domain": null,
+    "status": null,
+    "paymentMethod": null,
+    "pagination": {
+      "pageSize": 20,
+      "pageNumber": 0,
+      "sortBy": "sequenceNumber",
+      "sortOrder": "ASC"
+    }
+  }
+}
+
+docs {
+  Filter transactions using offset-based pagination. All filter fields are optional.
+}

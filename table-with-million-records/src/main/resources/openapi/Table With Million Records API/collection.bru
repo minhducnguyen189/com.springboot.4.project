@@ -1,0 +1,22 @@
+meta {
+  name: Table With Million Records API
+}
+
+auth {
+  mode: bearer
+}
+
+auth:bearer {
+  token: {{bearerToken}}
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:7070/api
+  bearerToken: your-bearer-token-here
+}
+
+docs {
+  Postman collection for the Table With Million Records Spring Boot project.
+  
+  This collection covers all endpoints for managing transactions and bank accounts with offset-based and cursor-based pagination.
+}
