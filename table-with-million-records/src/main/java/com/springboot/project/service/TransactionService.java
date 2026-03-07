@@ -65,18 +65,8 @@ public class TransactionService {
                                                 () -> new ResourceNotFoundException(
                                                                 MessageFormat.format(
                                                                                 TRANSACTION_NOT_FOUND, transactionId)));
-
-                BankAccountEntity bankAccount = bankAccountRepository
-                                .findById(updateRequest.getBankAccountId())
-                                .orElseThrow(
-                                                () -> new ResourceNotFoundException(
-                                                                MessageFormat.format(
-                                                                                BANK_ACCOUNT_NOT_FOUND,
-                                                                                updateRequest.getBankAccountId())));
-
                 TransactionDetailMapper.MAPPER.updateTransactionDetailEntity(
                                 updateRequest, existingEntity);
-                existingEntity.setBankAccount(bankAccount);
 
                 TransactionDetailEntity savedEntity = transactionRepository.save(existingEntity);
                 return TransactionDetailMapper.MAPPER.toTransactionDetail(savedEntity);

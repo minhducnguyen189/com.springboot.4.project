@@ -1,0 +1,239 @@
+{
+  "info": {
+    "name": "Table With Million Records API",
+    "description": "Postman collection for the Table With Million Records Spring Boot project.\n\nThis collection covers all endpoints for managing transactions and bank accounts with offset-based and cursor-based pagination.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:7070/api",
+      "type": "string"
+    },
+    {
+      "key": "bearerToken",
+      "value": "your-bearer-token-here",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{bearerToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Transaction",
+      "description": "Everything about transactions",
+      "item": [
+        {
+          "name": "Create Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/private-app/transactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["private-app", "transactions"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-03-07\",\n  \"domain\": \"RETAIL\",\n  \"location\": \"Ho Chi Minh City\",\n  \"value\": 150000.00,\n  \"status\": \"SUCCESS\",\n  \"paymentMethod\": \"CARD\",\n  \"taxAmount\": 15000.00,\n  \"netValue\": 135000.00,\n  \"bankAccountId\": \"00000000-0000-0000-0000-000000000001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Create a new transaction and save it into the database."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Transaction",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/private-app/transactions/:transactionId",
+              "host": ["{{baseUrl}}"],
+              "path": ["private-app", "transactions", ":transactionId"],
+              "variable": [
+                {
+                  "key": "transactionId",
+                  "value": "00000000-0000-0000-0000-000000000001",
+                  "description": "ID of the transaction to update (UUID)"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2026-03-07\",\n  \"domain\": \"RESTAURANT\",\n  \"location\": \"Hanoi\",\n  \"value\": 250000.00,\n  \"status\": \"SUCCESS\",\n  \"paymentMethod\": \"CASH\",\n  \"taxAmount\": 25000.00,\n  \"netValue\": 225000.00,\n  \"bankAccountId\": \"00000000-0000-0000-0000-000000000001\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Update an existing transaction by its ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Transaction",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/private-app/transactions/:transactionId",
+              "host": ["{{baseUrl}}"],
+              "path": ["private-app", "transactions", ":transactionId"],
+              "variable": [
+                {
+                  "key": "transactionId",
+                  "value": "00000000-0000-0000-0000-000000000001",
+                  "description": "ID of the transaction to soft-delete (UUID)"
+                }
+              ]
+            },
+            "description": "Soft delete a transaction by setting its status to DELETED."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Transactions (Offset Pagination)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/private-app/transactions/actions/filter",
+              "host": ["{{baseUrl}}"],
+              "path": ["private-app", "transactions", "actions", "filter"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"domain\": \"RETAIL\",\n  \"status\": \"SUCCESS\",\n  \"paymentMethod\": \"CARD\",\n  \"pagination\": {\n    \"pageSize\": 20,\n    \"pageNumber\": 0,\n    \"sortBy\": \"sequenceNumber\",\n    \"sortOrder\": \"ASC\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Filter transactions using offset-based pagination. All filter fields are optional."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Transactions (Cursor Pagination)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/private-app/transactions/actions/filter-cursor",
+              "host": ["{{baseUrl}}"],
+              "path": ["private-app", "transactions", "actions", "filter-cursor"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"domain\": \"RETAIL\",\n  \"status\": \"SUCCESS\",\n  \"pagination\": {\n    \"pageSize\": 20,\n    \"sortBy\": \"sequenceNumber\",\n    \"sortOrder\": \"ASC\",\n    \"nextPageToken\": null,\n    \"previousPageToken\": null\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Filter transactions using cursor-based pagination. Use `nextPageToken` or `previousPageToken` from a previous response to navigate pages."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Bank Account",
+      "description": "Everything about bank accounts",
+      "item": [
+        {
+          "name": "Filter Bank Accounts (Offset Pagination)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/private-app/bank-accounts/actions/filter",
+              "host": ["{{baseUrl}}"],
+              "path": ["private-app", "bank-accounts", "actions", "filter"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"accountType\": \"SAVINGS\",\n  \"status\": \"ACTIVE\",\n  \"pagination\": {\n    \"pageSize\": 20,\n    \"pageNumber\": 0,\n    \"sortBy\": \"sequenceNumber\",\n    \"sortOrder\": \"ASC\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Filter bank accounts using offset-based pagination. All filter fields are optional."
+          },
+          "response": []
+        },
+        {
+          "name": "Filter Bank Accounts (Cursor Pagination)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/private-app/bank-accounts/actions/filter-cursor",
+              "host": ["{{baseUrl}}"],
+              "path": ["private-app", "bank-accounts", "actions", "filter-cursor"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountType\": \"SAVINGS\",\n  \"status\": \"ACTIVE\",\n  \"pagination\": {\n    \"pageSize\": 20,\n    \"sortBy\": \"sequenceNumber\",\n    \"sortOrder\": \"ASC\",\n    \"nextPageToken\": null,\n    \"previousPageToken\": null\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Filter bank accounts using cursor-based pagination. Use `nextPageToken` or `previousPageToken` from a previous response to navigate pages."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
