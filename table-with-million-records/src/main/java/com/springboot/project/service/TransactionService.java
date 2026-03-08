@@ -165,6 +165,7 @@ public class TransactionService {
 
                 return new TransactionFilterResponseModel()
                                 .data(data)
+                                .totalItems(this.transactionRepository.findMaxSequenceNumber())
                                 .foundItems(Long.valueOf(data.size()))
                                 .previousPageToken(previousToken)
                                 .nextPageToken(nextToken);

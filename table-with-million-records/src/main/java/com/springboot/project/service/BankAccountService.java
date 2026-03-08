@@ -103,6 +103,7 @@ public class BankAccountService {
 
                 return new BankAccountFilterResponseModel()
                                 .data(data)
+                                .totalItems(this.bankAccountRepository.findMaxSequenceNumber())
                                 .foundItems((long) data.size())
                                 .previousPageToken(previousToken)
                                 .nextPageToken(nextToken);
