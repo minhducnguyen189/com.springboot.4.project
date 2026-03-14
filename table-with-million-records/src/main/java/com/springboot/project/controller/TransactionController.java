@@ -26,6 +26,12 @@ public class TransactionController implements TransactionApi {
     }
 
     @Override
+    public ResponseEntity<TransactionDetailModel> getTransaction(UUID transactionId) {
+        TransactionDetailModel response = transactionService.getTransaction(transactionId);
+        return ResponseEntity.ok(response);
+    }
+
+    @Override
     public ResponseEntity<TransactionDetailModel> createTransaction(
             CreateTransactionRequestModel createTransactionRequestModel) {
         TransactionDetailModel response = transactionService.createTransaction(createTransactionRequestModel);

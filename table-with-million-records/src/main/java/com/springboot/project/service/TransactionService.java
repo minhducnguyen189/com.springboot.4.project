@@ -38,6 +38,16 @@ public class TransactionService {
                 this.bankAccountRepository = bankAccountRepository;
         }
 
+        public TransactionDetailModel getTransaction(UUID transactionId) {
+                TransactionDetailEntity entity = transactionRepository
+                                .findById(transactionId)
+                                .orElseThrow(
+                                                () -> new ResourceNotFoundException(
+                                                                MessageFormat.format(
+                                                                                TRANSACTION_NOT_FOUND, transactionId)));
+                return TransactionDetailMapper.MAPPER.toTransactionDetail(entity);
+        }
+
         public TransactionDetailModel createTransaction(
                         CreateTransactionRequestModel createRequest) {
                 BankAccountEntity bankAccount = bankAccountRepository

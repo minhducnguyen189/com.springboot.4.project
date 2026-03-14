@@ -47,6 +47,52 @@ class TransactionServiceTest {
         @InjectMocks
         private TransactionService transactionService;
 
+        // --- getTransaction ---
+
+        @Test
+        void should_return_transaction_when_valid_id() {
+                // given
+                UUID transactionId = UUID.randomUUID();
+                UUID bankAccountId = UUID.randomUUID();
+
+                BankAccountEntity bankAccountEntity = new BankAccountEntity();
+                bankAccountEntity.setId(bankAccountId);
+
+                TransactionDetailEntity entity = new TransactionDetailEntity();
+                entity.setId(transactionId);
+                entity.setLocation("Berlin");
+                entity.setSequenceNumber(42L);
+                entity.setBankAccount(bankAccountEntity);
+
+                when(transactionRepository.findById(transactionId))
+                                .thenReturn(Optional.of(entity));
+
+                // when
+                var response = transactionService.getTransaction(transactionId);
+
+                // then
+                assertNotNull(response);
+                assertEquals(transactionId, response.getId());
+                assertEquals("Berlin", response.getLocation());
+                assertEquals(bankAccountId, response.getBankAccountId());
+                verify(transactionRepository).findById(transactionId);
+        }
+
+        @Test
+        void should_throw_exception_when_transaction_not_found_on_get() {
+                // given
+                UUID transactionId = UUID.randomUUID();
+
+                when(transactionRepository.findById(transactionId)).thenReturn(Optional.empty());
+
+                // when & then
+                assertThrows(
+                                ResourceNotFoundException.class,
+                                () -> transactionService.getTransaction(transactionId));
+
+                verify(transactionRepository).findById(transactionId);
+        }
+
         // --- filterTransactions (offset pagination) ---
 
         @Test
