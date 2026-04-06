@@ -11,6 +11,7 @@
 
   <modules>
     <module>table-with-million-records</module>
+    <module>functional-programming</module>
   </modules>
 
   <properties>

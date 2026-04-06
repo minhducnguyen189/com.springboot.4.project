@@ -1,0 +1,33 @@
+meta {
+  name: Filter Bank Accounts (Offset Pagination)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/private-app/bank-accounts/actions/filter
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "firstName": "John",
+    "accountType": "SAVINGS",
+    "status": "ACTIVE",
+    "pagination": {
+      "pageSize": 20,
+      "pageNumber": 0,
+      "sortBy": "sequenceNumber",
+      "sortOrder": "ASC"
+    }
+  }
+}
+
+docs {
+  Filter bank accounts using offset-based pagination. All filter fields are optional.
+}

@@ -1,0 +1,33 @@
+meta {
+  name: Filter Bank Accounts (Cursor Pagination)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/private-app/bank-accounts/actions/filter-cursor
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "accountType": "SAVINGS",
+    "status": "ACTIVE",
+    "pagination": {
+      "pageSize": 20,
+      "sortBy": "sequenceNumber",
+      "sortOrder": "ASC",
+      "nextPageToken": null,
+      "previousPageToken": null
+    }
+  }
+}
+
+docs {
+  Filter bank accounts using cursor-based pagination. Use `nextPageToken` or `previousPageToken` from a previous response to navigate pages.
+}

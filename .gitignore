@@ -3,3 +3,4 @@
 **/target/**
 **/generated/**
 **/target/generated-sources/**
+.idea

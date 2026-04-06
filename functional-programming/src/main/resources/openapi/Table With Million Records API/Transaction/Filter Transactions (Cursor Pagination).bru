@@ -1,0 +1,33 @@
+meta {
+  name: Filter Transactions (Cursor Pagination)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/private-app/transactions/actions/filter-cursor
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "domain": null,
+    "status": null,
+    "pagination": {
+      "pageSize": 200,
+      "sortBy": null,
+      "sortOrder": null,
+      "nextPageToken": 200000,
+      "previousPageToken": null
+    }
+  }
+}
+
+docs {
+  Filter transactions using cursor-based pagination. Use `nextPageToken` or `previousPageToken` from a previous response to navigate pages.
+}

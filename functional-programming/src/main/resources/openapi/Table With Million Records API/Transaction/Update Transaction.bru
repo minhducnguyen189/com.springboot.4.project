@@ -1,0 +1,41 @@
+meta {
+  name: Update Transaction
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/private-app/transactions/:transactionId
+  body: json
+  auth: inherit
+}
+
+params:path {
+  transactionId: 00000000-0000-0000-0000-000000000001
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "date": "2026-03-07",
+    "domain": "RESTAURANT",
+    "location": "Hanoi",
+    "value": 250000.00,
+    "status": "SUCCESS",
+    "paymentMethod": "CASH",
+    "taxAmount": 25000.00,
+    "netValue": 225000.00,
+    "bankAccountId": "00000000-0000-0000-0000-000000000001"
+  }
+}
+
+settings {
+  encodeUrl: true
+}
+
+docs {
+  Update an existing transaction by its ID.
+}
