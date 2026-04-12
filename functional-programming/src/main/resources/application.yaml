@@ -4,7 +4,7 @@ server:
 spring:
   datasource:
     driverClassName: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/postgres?useUnicode=true&characterEncoding=UTF-8
+    url: jdbc:postgresql://localhost:5432/functional-app?useUnicode=true&characterEncoding=UTF-8
     username: root
     password: password
   jpa:

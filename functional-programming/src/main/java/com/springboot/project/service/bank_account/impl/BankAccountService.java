@@ -7,6 +7,7 @@ import com.springboot.project.service.bank_account.mapper.BankAccountModelMapper
 import com.springboot.project.service.bank_account.model.BankAccountDetailModel;
 import com.springboot.project.service.bank_account.model.BankAccountFilterRequestModel;
 import com.springboot.project.service.bank_account.model.BankAccountFilterResponseModel;
+import com.springboot.project.service.common.functions.Validations;
 import com.springboot.project.shared.SpecificationHelper;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,7 +64,8 @@ public class BankAccountService implements IBankAccountService {
     @Override
     public BankAccountFilterResponseModel filterBankAccountsWithCursor(
             BankAccountFilterRequestModel filterRequest) {
-        assert filterRequest.getPagination() != null;
+      Validations.itemMustNotBeNull()
+              .accept(filterRequest.getPagination());
         Pageable pageable =
                 SpecificationHelper.buildPageableForCursor(
                         filterRequest.getPagination(), "sequenceNumber");
@@ -110,8 +112,8 @@ public class BankAccountService implements IBankAccountService {
         Long nextToken = null;
         Long previousToken = null;
         if (!data.isEmpty()) {
-            nextToken = data.get(data.size() - 1).getSequenceNumber();
-            previousToken = data.get(0).getSequenceNumber();
+            nextToken = data.getLast().getSequenceNumber();
+            previousToken = data.getFirst().getSequenceNumber();
         }
 
         return BankAccountFilterResponseModel.builder()

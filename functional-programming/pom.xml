@@ -12,6 +12,7 @@
         <spring-boot-version>4.0.3</spring-boot-version>
         <mockito-core>5.21.0</mockito-core>
         <lombok-version>1.18.42</lombok-version>
+        <assertj-core>3.27.7</assertj-core>
         <lombok-mapstruct-binding-version>0.2.0</lombok-mapstruct-binding-version>
         <jackson-databind-nullable-version>0.2.9</jackson-databind-nullable-version>
         <jakarta-validation-api-version>3.1.1</jakarta-validation-api-version>
@@ -111,6 +112,12 @@
         </dependency>
 
         <!-- commons -->
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj-core}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>

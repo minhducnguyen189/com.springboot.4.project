@@ -21,7 +21,7 @@ CACHE 100;
 
 -- 1. Create Login User Table
 CREATE TABLE IF NOT EXISTS "login_user" (
-    "id"          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                                            "id"          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     "user_name"   VARCHAR(255) UNIQUE,
     "name"        VARCHAR(255),
     "email"       VARCHAR(255) UNIQUE,
@@ -35,8 +35,8 @@ CREATE TABLE IF NOT EXISTS "login_user" (
 
 -- 2. Create Bank Account Table
 CREATE TABLE IF NOT EXISTS bank_account (
-    "id"              UUID PRIMARY KEY,
-    "sequence_number" BIGINT NOT NULL DEFAULT nextval('bank_account_sequence_number')::BIGINT,
+                                            "id"              UUID PRIMARY KEY,
+                                            "sequence_number" BIGINT NOT NULL DEFAULT nextval('bank_account_sequence_number')::BIGINT,
     "first_name"      VARCHAR(100) NOT NULL,
     "last_name"       VARCHAR(100) NOT NULL,
     "phone"           VARCHAR(20),
@@ -60,22 +60,22 @@ CREATE TABLE IF NOT EXISTS bank_account (
 
 -- 3. Create Transaction Detail Table
 CREATE TABLE IF NOT EXISTS transaction_detail (
-    "id"                    UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-    "transaction_number"    VARCHAR(16) NOT NULL DEFAULT ('TRN' || LPAD(nextval('transaction_number_seq')::text, 13, '0')),
-    "sequence_number"       BIGINT NOT NULL DEFAULT nextval('sequence_number')::BIGINT,
-    "date"                  DATE NULL,
-    "domain"                VARCHAR(50) NULL,
-    "location"              VARCHAR(50) NULL,
-    "value"                 INT NULL,
-    "status"                VARCHAR(255) NULL,
-    "payment_method"        VARCHAR(255) NULL,
-    "tax_amount"            NUMERIC(12, 2) NULL,
-    "net_value"             NUMERIC(12, 2) NULL,
-    "bank_account_id"       UUID NULL,
-    "created_at"            TIMESTAMP NULL,
-    "updated_at"            TIMESTAMP NULL,
-    "created_by"            VARCHAR(255) NULL,
-    "updated_by"            VARCHAR(255) NULL,
+                                                  "id"                  UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    "transaction_number"  VARCHAR(16) NOT NULL DEFAULT ('TRN' || LPAD(nextval('transaction_number_seq')::text, 13, '0')),
+    "sequence_number"     BIGINT NOT NULL DEFAULT nextval('sequence_number')::BIGINT,
+    "date"                DATE NULL,
+    "domain"              VARCHAR(50) NULL,
+    "location"            VARCHAR(50) NULL,
+    "value"               INT NULL,
+    "status"              VARCHAR(255) NULL,
+    "payment_method"      VARCHAR(255) NULL,
+    "tax_amount"          NUMERIC(12, 2) NULL,
+    "net_value"           NUMERIC(12, 2) NULL,
+    "bank_account_id"     UUID NULL,
+    "created_at"          TIMESTAMP NULL,
+    "updated_at"          TIMESTAMP NULL,
+    "created_by"          VARCHAR(255) NULL,
+    "updated_by"          VARCHAR(255) NULL,
     CONSTRAINT uq_transaction_detail_transaction_number
     UNIQUE (transaction_number),
     CONSTRAINT uq_sequence_number
@@ -98,32 +98,32 @@ SELECT
     -- 1. Random Value (Now changes per row)
     v.val,
 
-    -- 2. Status Distribution (Fixed counts)
+    -- 2. Status Distribution (Fixed counts proportionally scaled down)
     CASE
-        WHEN g <= 10000 THEN 'FAILED'
-        WHEN g <= 18000 THEN 'CANCELLED'
+        WHEN g <= 1000 THEN 'FAILED'
+        WHEN g <= 1800 THEN 'CANCELLED'
         ELSE 'SUCCESS'
-    END,
+END,
 
     (ARRAY['CARD', 'CASH', 'UPI'])[floor(random() * 3) + 1],
 
     -- 3. Tax Amount (Small realistic tax)
     CASE
-        WHEN g <= 18000 THEN 0
+        WHEN g <= 1800 THEN 0
         ELSE round((v.val * v.tax_rate), 2)
-    END,
+END,
 
     -- 4. Net Value (Ensures value = tax + net)
     CASE
-        WHEN g <= 18000 THEN 0
+        WHEN g <= 1800 THEN 0
         ELSE round((v.val * (1.0 - v.tax_rate)), 2)
-    END,
+END,
 
     v.dt,
     v.dt + (random() * interval '2 hours'),
     'SYSTEM',
     'SYSTEM'
-FROM generate_series(1, 10000000) AS g
+FROM generate_series(1, 1000000) AS g -- Reduced to 1 million
 CROSS JOIN LATERAL (
     SELECT
         NOW() - (random() * interval '5 years') AS dt,
@@ -142,9 +142,9 @@ BEGIN
     -- A. Check current account count
 SELECT COUNT(*) INTO current_account_count FROM bank_account;
 
--- B. Insert accounts if we have fewer than 200,000
-IF current_account_count < 200000 THEN
-        RAISE NOTICE 'Inserting % new accounts...', (200000 - current_account_count);
+-- B. Insert accounts if we have fewer than 20,000
+IF current_account_count < 20000 THEN
+        RAISE NOTICE 'Inserting % new accounts...', (20000 - current_account_count);
 
 INSERT INTO bank_account (
     id, first_name, last_name, phone, email, street, street_number,
@@ -172,11 +172,11 @@ SELECT
             'system',
             t.created_date + (RANDOM() * INTERVAL '30 days'),
             'system'
-FROM GENERATE_SERIES(1, (200000 - current_account_count)) AS g, -- Added comma here
+FROM GENERATE_SERIES(1, (20000 - current_account_count)) AS g, -- Reduced to 20,000 target
     LATERAL (SELECT TIMESTAMP '2022-01-01' + RANDOM() * (NOW() - TIMESTAMP '2022-01-01') AS created_date) AS t;
 END IF;
 
-    -- C. Load all 200,000 IDs into memory
+    -- C. Load all 20,000 IDs into memory
     account_array := ARRAY(SELECT id FROM bank_account);
 
     -- D. Update transaction_detail with random IDs
@@ -191,4 +191,3 @@ END $$;
 
 -- 4. Final Constraint
 ALTER TABLE "transaction_detail" ALTER COLUMN bank_account_id SET NOT NULL;
-

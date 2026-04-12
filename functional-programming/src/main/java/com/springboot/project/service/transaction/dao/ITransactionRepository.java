@@ -5,12 +5,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
+
+import com.springboot.project.service.common.GenericRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.query.FluentQuery;
 
-public interface ITransactionRepository {
+public interface ITransactionRepository extends GenericRepository<TransactionDetailEntity> {
 
     Optional<TransactionDetailEntity> findById(UUID id);
 

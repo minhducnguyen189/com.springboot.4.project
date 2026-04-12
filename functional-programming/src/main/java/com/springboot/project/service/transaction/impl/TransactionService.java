@@ -4,6 +4,7 @@ import com.springboot.project.dao.entity.BankAccountEntity;
 import com.springboot.project.dao.entity.TransactionDetailEntity;
 import com.springboot.project.dao.entity.TransactionStatusEnumEntity;
 import com.springboot.project.exception.ResourceNotFoundException;
+import com.springboot.project.service.common.functions.Validations;
 import com.springboot.project.service.transaction.dao.ITransactionBankAccountRepository;
 import com.springboot.project.service.transaction.dao.ITransactionRepository;
 import com.springboot.project.service.transaction.global.ITransactionService;
@@ -53,6 +54,14 @@ public class TransactionService implements ITransactionService {
     @Override
     public TransactionDetailModel createTransaction(
             CreateTransactionRequestModel createRequest) {
+        Validations.itemMustNotBeNull()
+                .doTheSameWithField(createRequest.getBankAccountId())
+                .doTheSameWithField(createRequest.getTaxAmount())
+                .doTheSameWithField(createRequest.getNetValue())
+                .doTheSameWithField(createRequest.getPaymentMethod())
+                .doTheSameWithField(createRequest.getValue())
+                .accept(createRequest.getDate());
+
         BankAccountEntity bankAccount = bankAccountRepository
                 .findById(createRequest.getBankAccountId())
                 .orElseThrow(
