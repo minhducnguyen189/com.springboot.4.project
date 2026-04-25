@@ -2,13 +2,14 @@
 
 ## Project Overview
 
-This is a **Spring Boot multi-module Maven project** focused on studying patterns for handling large-scale data (millions of records) efficiently. The project currently has one module:
+This is a **Spring Boot multi-module Maven project** focused on studying patterns for handling large-scale data (millions of records) efficiently. The project has two modules:
 
 | Module                       | Description                                                                                                                                            |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `table-with-million-records` | REST API demonstrating efficient querying and creation of records in large PostgreSQL tables using offset-based pagination and cursor-based pagination |
+| `functional-programming`     | Bank account & transaction services demonstrating functional programming patterns with repository adapters                                            |
 
-> **Note:** The project has a fully implemented layered architecture: controllers, services, repositories, entities, mappers, exception handling, and unit tests are all in place.
+> **Note:** Both modules have fully implemented layered architecture: controllers, services, repositories, entities, mappers, exception handling, and unit tests.
 
 ---
 
@@ -173,7 +174,7 @@ Generated code is cleaned on every `mvn clean` cycle and regenerated on compile.
 - A **pre-commit Git hook** (`hooks/pre-commit`) is installed by `git-build-hook-maven-plugin` to enforce formatting before commits
 - **MapStruct** is used for DTO ↔ entity mapping — annotate mappers with `@Mapper` and use the static `MAPPER` field (never inject as Spring beans)
 - **Lombok** is used to reduce boilerplate — prefer `@Getter`, `@Setter`, `@NoArgsConstructor`, `@AllArgsConstructor`, `@Builder` as appropriate
-- **Test method naming**: snake*case following `should*<action>_when_<condition>` pattern
+- **Test method naming**: snake_case following `should_<action>_when_<condition>` pattern
 
 ### Annotation Processor Order (important)
 
@@ -191,5 +192,4 @@ The compiler plugin annotation processor path order must be: **MapStruct → Lom
 - **Flyway migrations**: Versioned SQL files in `src/main/resources/db/migration/`
 - **Bearer token security**: Endpoints require `bearerAuth` security scheme
 - **Global Exception Handling**: `@ControllerAdvice` returns standardized `ErrorResponseModel`
-
----
+- **Functional Programming Module**: Uses repository adapters, factory pattern for repository selection, and validation functions

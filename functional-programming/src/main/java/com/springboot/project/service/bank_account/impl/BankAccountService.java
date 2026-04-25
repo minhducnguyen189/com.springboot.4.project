@@ -28,6 +28,17 @@ public class BankAccountService implements IBankAccountService {
     @Override
     public BankAccountFilterResponseModel filterBankAccounts(
             BankAccountFilterRequestModel filterRequest) {
+        Validations.itemMustNotBeNull()
+                .doTheSameWithField(filterRequest.getPagination())
+                .accept(filterRequest.getFirstName());
+        Validations.stringMustNotBeBlank()
+                .doTheSameWithField(filterRequest.getLastName())
+                .doTheSameWithField(filterRequest.getAccountNumber())
+                .doTheSameWithField(filterRequest.getIfscCode());
+        Validations.stringMustMatchPhonePattern()
+                .doTheSameWithField(filterRequest.getPhone());
+        Validations.stringMustMatchEmailPattern()
+                .doTheSameWithField(filterRequest.getEmail());
         assert filterRequest.getPagination() != null;
         Pageable pageable = SpecificationHelper.buildPageable(filterRequest.getPagination());
         Example<BankAccountEntity> bankAccountEntityExample =
@@ -64,8 +75,17 @@ public class BankAccountService implements IBankAccountService {
     @Override
     public BankAccountFilterResponseModel filterBankAccountsWithCursor(
             BankAccountFilterRequestModel filterRequest) {
-      Validations.itemMustNotBeNull()
-              .accept(filterRequest.getPagination());
+        Validations.itemMustNotBeNull()
+                .doTheSameWithField(filterRequest.getPagination())
+                .accept(filterRequest.getFirstName());
+        Validations.stringMustNotBeBlank()
+                .doTheSameWithField(filterRequest.getLastName())
+                .doTheSameWithField(filterRequest.getAccountNumber())
+                .doTheSameWithField(filterRequest.getIfscCode());
+        Validations.stringMustMatchPhonePattern()
+                .doTheSameWithField(filterRequest.getPhone());
+        Validations.stringMustMatchEmailPattern()
+                .doTheSameWithField(filterRequest.getEmail());
         Pageable pageable =
                 SpecificationHelper.buildPageableForCursor(
                         filterRequest.getPagination(), "sequenceNumber");

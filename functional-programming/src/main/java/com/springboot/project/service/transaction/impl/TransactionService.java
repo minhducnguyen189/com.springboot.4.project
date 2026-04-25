@@ -42,6 +42,8 @@ public class TransactionService implements ITransactionService {
 
     @Override
     public TransactionDetailModel getTransaction(UUID transactionId) {
+        Validations.itemMustNotBeNull()
+                .accept(transactionId);
         TransactionDetailEntity entity = transactionRepository
                 .findById(transactionId)
                 .orElseThrow(
@@ -61,6 +63,12 @@ public class TransactionService implements ITransactionService {
                 .doTheSameWithField(createRequest.getPaymentMethod())
                 .doTheSameWithField(createRequest.getValue())
                 .accept(createRequest.getDate());
+        Validations.numberMustBePositive()
+                .doTheSameWithField(createRequest.getTaxAmount())
+                .doTheSameWithField(createRequest.getNetValue())
+                .doTheSameWithField(createRequest.getValue());
+        Validations.stringMustNotBeBlank()
+                .doTheSameWithField(createRequest.getLocation());
 
         BankAccountEntity bankAccount = bankAccountRepository
                 .findById(createRequest.getBankAccountId())
@@ -82,6 +90,24 @@ public class TransactionService implements ITransactionService {
     @Override
     public TransactionDetailModel updateTransaction(
             UUID transactionId, UpdateTransactionRequestModel updateRequest) {
+        Validations.itemMustNotBeNull()
+                .accept(transactionId);
+        if (updateRequest.getValue() != null) {
+            Validations.numberMustBePositive()
+                    .accept(updateRequest.getValue());
+        }
+        if (updateRequest.getTaxAmount() != null) {
+            Validations.numberMustBePositive()
+                    .accept(updateRequest.getTaxAmount());
+        }
+        if (updateRequest.getNetValue() != null) {
+            Validations.numberMustBePositive()
+                    .accept(updateRequest.getNetValue());
+        }
+        if (updateRequest.getLocation() != null) {
+            Validations.stringMustNotBeBlank()
+                    .accept(updateRequest.getLocation());
+        }
         TransactionDetailEntity existingEntity = transactionRepository
                 .findById(transactionId)
                 .orElseThrow(
@@ -109,6 +135,8 @@ public class TransactionService implements ITransactionService {
 
     @Override
     public void deleteTransaction(UUID transactionId) {
+        Validations.itemMustNotBeNull()
+                .accept(transactionId);
         TransactionDetailEntity existingEntity = transactionRepository
                 .findById(transactionId)
                 .orElseThrow(
@@ -123,6 +151,13 @@ public class TransactionService implements ITransactionService {
     @Override
     public TransactionFilterResponseModel filterTransactions(
             TransactionFilterRequestModel filterRequest) {
+        Validations.itemMustNotBeNull()
+                .doTheSameWithField(filterRequest.getPagination())
+                .accept(filterRequest.getDate());
+        Validations.numberMustBeNonNegative()
+                .doTheSameWithField(filterRequest.getValue())
+                .doTheSameWithField(filterRequest.getTaxAmount())
+                .doTheSameWithField(filterRequest.getNetValue());
         assert filterRequest.getPagination() != null;
         Pageable pageable = SpecificationHelper.buildPageable(filterRequest.getPagination());
         Example<TransactionDetailEntity> transactionDetailEntityExample = this
@@ -143,6 +178,13 @@ public class TransactionService implements ITransactionService {
     @Override
     public TransactionFilterResponseModel filterTransactionsWithCursor(
             TransactionFilterRequestModel filterRequest) {
+        Validations.itemMustNotBeNull()
+                .doTheSameWithField(filterRequest.getPagination())
+                .accept(filterRequest.getDate());
+        Validations.numberMustBeNonNegative()
+                .doTheSameWithField(filterRequest.getValue())
+                .doTheSameWithField(filterRequest.getTaxAmount())
+                .doTheSameWithField(filterRequest.getNetValue());
         assert filterRequest.getPagination() != null;
         Pageable pageable = SpecificationHelper.buildPageableForCursor(filterRequest.getPagination(),
                 "sequenceNumber");
