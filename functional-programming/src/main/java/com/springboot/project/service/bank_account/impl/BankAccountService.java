@@ -7,13 +7,15 @@ import com.springboot.project.service.bank_account.mapper.BankAccountModelMapper
 import com.springboot.project.service.bank_account.model.BankAccountDetailModel;
 import com.springboot.project.service.bank_account.model.BankAccountFilterRequestModel;
 import com.springboot.project.service.bank_account.model.BankAccountFilterResponseModel;
-import com.springboot.project.service.common.functions.Validations;
+import com.springboot.project.service.bank_account.validation.BankAccountFilterRequestValidation;
 import com.springboot.project.shared.SpecificationHelper;
 import java.util.List;
+import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import com.springboot.project.generated.dto.PaginationRequestDto;
 
 @Service
 public class BankAccountService implements IBankAccountService {
@@ -28,25 +30,25 @@ public class BankAccountService implements IBankAccountService {
     @Override
     public BankAccountFilterResponseModel filterBankAccounts(
             BankAccountFilterRequestModel filterRequest) {
-        Validations.itemMustNotBeNull()
-                .doTheSameWithField(filterRequest.getPagination())
-                .accept(filterRequest.getFirstName());
-        Validations.stringMustNotBeBlank()
-                .doTheSameWithField(filterRequest.getLastName())
-                .doTheSameWithField(filterRequest.getAccountNumber())
-                .doTheSameWithField(filterRequest.getIfscCode());
-        Validations.stringMustMatchPhonePattern()
-                .doTheSameWithField(filterRequest.getPhone());
-        Validations.stringMustMatchEmailPattern()
-                .doTheSameWithField(filterRequest.getEmail());
-        assert filterRequest.getPagination() != null;
-        Pageable pageable = SpecificationHelper.buildPageable(filterRequest.getPagination());
-        Example<BankAccountEntity> bankAccountEntityExample =
-                this.buildBankAccountExample(filterRequest);
-        Specification<BankAccountEntity> specification =
-                SpecificationHelper.init(bankAccountEntityExample);
-        Page<BankAccountEntity> pages =
-                this.bankAccountRepository.findAll(specification, pageable);
+        return executeFilter(filterRequest, SpecificationHelper::buildPageable);
+    }
+
+    @Override
+    public BankAccountFilterResponseModel filterBankAccountsWithCursor(
+            BankAccountFilterRequestModel filterRequest) {
+        return executeFilter(filterRequest, pagination ->
+                SpecificationHelper.buildPageableForCursor(pagination, "sequenceNumber"));
+    }
+
+    private BankAccountFilterResponseModel executeFilter(
+            BankAccountFilterRequestModel filterRequest,
+            Function<PaginationRequestDto, Pageable> pageableBuilder) {
+        BankAccountFilterRequestValidation.validate().accept(filterRequest);
+
+        Pageable pageable = pageableBuilder.apply(filterRequest.getPagination());
+        Example<BankAccountEntity> example = this.buildBankAccountExample(filterRequest);
+        Specification<BankAccountEntity> specification = SpecificationHelper.init(example);
+        Page<BankAccountEntity> pages = this.bankAccountRepository.findAll(specification, pageable);
 
         List<BankAccountDetailModel> data =
                 BankAccountModelMapper.MAPPER.toBankAccountDetails(pages.toList());
@@ -70,78 +72,5 @@ public class BankAccountService implements IBankAccountService {
                         .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
 
         return Example.of(bankAccount, exampleMatcher);
-    }
-
-    @Override
-    public BankAccountFilterResponseModel filterBankAccountsWithCursor(
-            BankAccountFilterRequestModel filterRequest) {
-        Validations.itemMustNotBeNull()
-                .doTheSameWithField(filterRequest.getPagination())
-                .accept(filterRequest.getFirstName());
-        Validations.stringMustNotBeBlank()
-                .doTheSameWithField(filterRequest.getLastName())
-                .doTheSameWithField(filterRequest.getAccountNumber())
-                .doTheSameWithField(filterRequest.getIfscCode());
-        Validations.stringMustMatchPhonePattern()
-                .doTheSameWithField(filterRequest.getPhone());
-        Validations.stringMustMatchEmailPattern()
-                .doTheSameWithField(filterRequest.getEmail());
-        Pageable pageable =
-                SpecificationHelper.buildPageableForCursor(
-                        filterRequest.getPagination(), "sequenceNumber");
-        Specification<BankAccountEntity> specification =
-                SpecificationHelper.init(this.buildBankAccountExample(filterRequest));
-
-        var pagination = filterRequest.getPagination();
-        Long nextPageToken = pagination != null ? pagination.getNextPageToken() : null;
-        Long previousPageToken =
-                pagination != null ? pagination.getPreviousPageToken() : null;
-
-        Sort sort = pageable.getSort();
-
-        if (nextPageToken != null) {
-            specification =
-                    specification.and(
-                            SpecificationHelper.cursorPagination(
-                                    sort, "sequenceNumber", nextPageToken, false));
-        }
-
-        if (previousPageToken != null) {
-            specification =
-                    specification.and(
-                            SpecificationHelper.cursorPagination(
-                                    sort, "sequenceNumber", previousPageToken, true));
-            if (sort.isSorted()) {
-                sort = sort.descending();
-            }
-        }
-
-        final Sort finalSort = sort;
-        final int pageSize = pageable.getPageSize();
-        List<BankAccountEntity> entities =
-                this.bankAccountRepository.findBy(
-                        specification,
-                        q ->
-                                finalSort.isSorted()
-                                        ? q.sortBy(finalSort).limit(pageSize).all()
-                                        : q.limit(pageSize).all());
-
-        List<BankAccountDetailModel> data =
-                BankAccountModelMapper.MAPPER.toBankAccountDetails(entities);
-
-        Long nextToken = null;
-        Long previousToken = null;
-        if (!data.isEmpty()) {
-            nextToken = data.getLast().getSequenceNumber();
-            previousToken = data.getFirst().getSequenceNumber();
-        }
-
-        return BankAccountFilterResponseModel.builder()
-                .data(data)
-                .totalItems(this.bankAccountRepository.findMaxSequenceNumber())
-                .foundItems((long) data.size())
-                .previousPageToken(previousToken)
-                .nextPageToken(nextToken)
-                .build();
     }
 }

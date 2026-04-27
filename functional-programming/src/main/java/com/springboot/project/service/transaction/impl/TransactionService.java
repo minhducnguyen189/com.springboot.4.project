@@ -14,14 +14,17 @@ import com.springboot.project.service.transaction.model.TransactionDetailModel;
 import com.springboot.project.service.transaction.model.TransactionFilterRequestModel;
 import com.springboot.project.service.transaction.model.TransactionFilterResponseModel;
 import com.springboot.project.service.transaction.model.UpdateTransactionRequestModel;
+import com.springboot.project.service.transaction.validation.TransactionFilterRequestValidation;
 import com.springboot.project.shared.SpecificationHelper;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import com.springboot.project.generated.dto.PaginationRequestDto;
 
 @Service
 public class TransactionService implements ITransactionService {
@@ -151,19 +154,24 @@ public class TransactionService implements ITransactionService {
     @Override
     public TransactionFilterResponseModel filterTransactions(
             TransactionFilterRequestModel filterRequest) {
-        Validations.itemMustNotBeNull()
-                .doTheSameWithField(filterRequest.getPagination())
-                .accept(filterRequest.getDate());
-        Validations.numberMustBeNonNegative()
-                .doTheSameWithField(filterRequest.getValue())
-                .doTheSameWithField(filterRequest.getTaxAmount())
-                .doTheSameWithField(filterRequest.getNetValue());
-        assert filterRequest.getPagination() != null;
-        Pageable pageable = SpecificationHelper.buildPageable(filterRequest.getPagination());
-        Example<TransactionDetailEntity> transactionDetailEntityExample = this
-                .buildTransactionDetailExample(filterRequest);
-        Specification<TransactionDetailEntity> specification = SpecificationHelper
-                .init(transactionDetailEntityExample);
+        return executeFilter(filterRequest, SpecificationHelper::buildPageable);
+    }
+
+    @Override
+    public TransactionFilterResponseModel filterTransactionsWithCursor(
+            TransactionFilterRequestModel filterRequest) {
+        return executeFilter(filterRequest, pagination ->
+                SpecificationHelper.buildPageableForCursor(pagination, "sequenceNumber"));
+    }
+
+    private TransactionFilterResponseModel executeFilter(
+            TransactionFilterRequestModel filterRequest,
+            Function<PaginationRequestDto, Pageable> pageableBuilder) {
+        TransactionFilterRequestValidation.validate().accept(filterRequest);
+
+        Pageable pageable = pageableBuilder.apply(filterRequest.getPagination());
+        Example<TransactionDetailEntity> example = this.buildTransactionDetailExample(filterRequest);
+        Specification<TransactionDetailEntity> specification = SpecificationHelper.init(example);
         Page<TransactionDetailEntity> pages = this.transactionRepository.findAll(specification, pageable);
 
         List<TransactionDetailModel> data = TransactionModelMapper.MAPPER
@@ -172,73 +180,6 @@ public class TransactionService implements ITransactionService {
                 .data(data)
                 .foundItems(Long.valueOf(pages.getNumberOfElements()))
                 .totalItems(pages.getTotalElements())
-                .build();
-    }
-
-    @Override
-    public TransactionFilterResponseModel filterTransactionsWithCursor(
-            TransactionFilterRequestModel filterRequest) {
-        Validations.itemMustNotBeNull()
-                .doTheSameWithField(filterRequest.getPagination())
-                .accept(filterRequest.getDate());
-        Validations.numberMustBeNonNegative()
-                .doTheSameWithField(filterRequest.getValue())
-                .doTheSameWithField(filterRequest.getTaxAmount())
-                .doTheSameWithField(filterRequest.getNetValue());
-        assert filterRequest.getPagination() != null;
-        Pageable pageable = SpecificationHelper.buildPageableForCursor(filterRequest.getPagination(),
-                "sequenceNumber");
-
-        Specification<TransactionDetailEntity> specification = SpecificationHelper
-                .init(this.buildTransactionDetailExample(filterRequest));
-
-        var pagination = filterRequest.getPagination();
-        Long nextPageToken = pagination != null ? pagination.getNextPageToken() : null;
-        Long previousPageToken = pagination != null ? pagination.getPreviousPageToken() : null;
-
-        Sort sort = pageable.getSort();
-
-        if (nextPageToken != null) {
-            specification = specification.and(
-                    SpecificationHelper.cursorPagination(
-                            sort, "sequenceNumber", nextPageToken, false));
-        }
-
-        if (previousPageToken != null) {
-            specification = specification.and(
-                    SpecificationHelper.cursorPagination(
-                            sort,
-                            "sequenceNumber",
-                            previousPageToken,
-                            true));
-            if (sort.isSorted()) {
-                sort = sort.descending();
-            }
-        }
-
-        final Sort finalSort = sort;
-        final int pageSize = pageable.getPageSize();
-        List<TransactionDetailEntity> entities = transactionRepository.findBy(
-                specification,
-                q -> finalSort.isSorted() ? q.sortBy(finalSort).limit(pageSize).all()
-                        : q.limit(pageSize).all());
-
-        List<TransactionDetailModel> data = TransactionModelMapper.MAPPER
-                .toTransactionDetails(entities);
-
-        Long nextToken = null;
-        Long previousToken = null;
-        if (!data.isEmpty()) {
-            nextToken = data.getLast().getSequenceNumber();
-            previousToken = data.getFirst().getSequenceNumber();
-        }
-
-        return TransactionFilterResponseModel.builder()
-                .data(data)
-                .totalItems(this.transactionRepository.findMaxSequenceNumber())
-                .foundItems((long) data.size())
-                .previousPageToken(previousToken)
-                .nextPageToken(nextToken)
                 .build();
     }
 
