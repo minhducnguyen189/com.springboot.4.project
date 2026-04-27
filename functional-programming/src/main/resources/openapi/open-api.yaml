@@ -371,6 +371,199 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+
+  /private-app/bank-accounts:
+    post:
+      tags:
+        - bank-account
+      summary: create a new bank account
+      description: create a new bank account and save it into database
+      operationId: createBankAccount
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: create bank account request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBankAccountRequest"
+      responses:
+        "201":
+          description: bank account created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankAccountDetail"
+        "401":
+          description: Unauthorized
+        "400":
+          description: bad request operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: forbidden
+        "500":
+          description: internal server error operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /private-app/bank-accounts/{bank-account-id}:
+    get:
+      tags:
+        - bank-account
+      summary: get a bank account by ID
+      description: get a bank account detail by its ID
+      operationId: getBankAccount
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: bank-account-id
+          in: path
+          description: ID of the bank account to retrieve
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: bank account retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankAccountDetail"
+        "401":
+          description: Unauthorized
+        "403":
+          description: forbidden
+        "404":
+          description: bank account not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: internal server error operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    put:
+      tags:
+        - bank-account
+      summary: update an existing bank account
+      description: update an existing bank account by its ID
+      operationId: updateBankAccount
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: bank-account-id
+          in: path
+          description: ID of the bank account to update
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update bank account request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBankAccountRequest"
+      responses:
+        "200":
+          description: bank account updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BankAccountDetail"
+        "401":
+          description: Unauthorized
+        "400":
+          description: bad request operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: forbidden
+        "404":
+          description: bank account not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: internal server error operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - bank-account
+      summary: delete a bank account
+      description: delete a bank account by its ID
+      operationId: deleteBankAccount
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: bank-account-id
+          in: path
+          description: ID of the bank account to delete
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: bank account deleted successfully
+        "401":
+          description: Unauthorized
+        "403":
+          description: forbidden
+        "404":
+          description: bank account not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: internal server error operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   schemas:
     LoginUserResponse:
@@ -701,3 +894,79 @@ components:
         - ACTIVE
         - INACTIVE
         - CLOSED
+    CreateBankAccountRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - phone
+        - email
+        - accountNumber
+        - accountType
+        - ifscCode
+        - balance
+        - currency
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        street:
+          type: string
+        streetNumber:
+          type: string
+        postalCode:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        accountNumber:
+          type: string
+        accountType:
+          $ref: "#/components/schemas/AccountTypeEnum"
+        ifscCode:
+          type: string
+        balance:
+          type: number
+          format: decimal
+        currency:
+          $ref: "#/components/schemas/CurrencyEnum"
+    UpdateBankAccountRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+        street:
+          type: string
+        streetNumber:
+          type: string
+        postalCode:
+          type: string
+        city:
+          type: string
+        country:
+          type: string
+        accountNumber:
+          type: string
+        accountType:
+          $ref: "#/components/schemas/AccountTypeEnum"
+        ifscCode:
+          type: string
+        balance:
+          type: number
+          format: decimal
+        currency:
+          $ref: "#/components/schemas/CurrencyEnum"
+        status:
+          $ref: "#/components/schemas/AccountStatusEnum"

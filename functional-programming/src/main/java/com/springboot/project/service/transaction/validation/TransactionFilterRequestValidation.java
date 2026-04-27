@@ -7,6 +7,9 @@ import java.util.function.Consumer;
 
 public final class TransactionFilterRequestValidation {
 
+  private static final String NULL_ERROR_MESSAGE = "The expected item for checking must not be null";
+  private static final String NON_NEGATIVE_ERROR_MESSAGE = "The value must be a non-negative number";
+
   private TransactionFilterRequestValidation() {}
 
   public static Consumer<TransactionFilterRequestModel> validate() {
@@ -18,22 +21,22 @@ public final class TransactionFilterRequestValidation {
 
   private static void validatePagination(TransactionFilterRequestModel request) {
     if (request.getPagination() == null) {
-      throw new BadRequestException("The expected item for checking must not be null");
+      throw new BadRequestException(NULL_ERROR_MESSAGE);
     }
     if (request.getDate() == null) {
-      throw new BadRequestException("The expected item for checking must not be null");
+      throw new BadRequestException(NULL_ERROR_MESSAGE);
     }
   }
 
   private static void validateNumbers(TransactionFilterRequestModel request) {
     if (request.getValue() != null && request.getValue().compareTo(BigDecimal.ZERO) < 0) {
-      throw new BadRequestException("The value must be a non-negative number");
+      throw new BadRequestException(NON_NEGATIVE_ERROR_MESSAGE);
     }
     if (request.getTaxAmount() != null && request.getTaxAmount().compareTo(BigDecimal.ZERO) < 0) {
-      throw new BadRequestException("The value must be a non-negative number");
+      throw new BadRequestException(NON_NEGATIVE_ERROR_MESSAGE);
     }
     if (request.getNetValue() != null && request.getNetValue().compareTo(BigDecimal.ZERO) < 0) {
-      throw new BadRequestException("The value must be a non-negative number");
+      throw new BadRequestException(NON_NEGATIVE_ERROR_MESSAGE);
     }
   }
 }

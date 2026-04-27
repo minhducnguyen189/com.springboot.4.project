@@ -4,6 +4,8 @@ import com.springboot.project.dao.entity.BankAccountEntity;
 import com.springboot.project.dao.repository.BankAccountRepository;
 import com.springboot.project.service.bank_account.dao.IBankAccountRepository;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.function.Function;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,6 +22,16 @@ public class BankAccountRepositoryAdapter implements IBankAccountRepository {
     @Autowired
     public BankAccountRepositoryAdapter(BankAccountRepository bankAccountRepository) {
         this.bankAccountRepository = bankAccountRepository;
+    }
+
+    @Override
+    public Optional<BankAccountEntity> findById(UUID id) {
+        return bankAccountRepository.findById(id);
+    }
+
+    @Override
+    public BankAccountEntity save(BankAccountEntity entity) {
+        return bankAccountRepository.save(entity);
     }
 
     @Override

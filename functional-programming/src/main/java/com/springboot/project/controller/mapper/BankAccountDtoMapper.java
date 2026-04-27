@@ -1,9 +1,7 @@
 package com.springboot.project.controller.mapper;
 
-import com.springboot.project.generated.dto.BankAccountFilterRequestDto;
-import com.springboot.project.generated.dto.BankAccountFilterResponseDto;
-import com.springboot.project.service.bank_account.model.BankAccountFilterRequestModel;
-import com.springboot.project.service.bank_account.model.BankAccountFilterResponseModel;
+import com.springboot.project.generated.dto.*;
+import com.springboot.project.service.bank_account.model.*;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -16,5 +14,9 @@ public interface BankAccountDtoMapper {
 
   BankAccountFilterResponseDto toBankAccountFilterResponseDto(BankAccountFilterResponseModel responseModel);
 
+  BankAccountDetailDto toBankAccountDetailDto(BankAccountDetailModel detailModel);
 
+  CreateBankAccountRequestModel toCreateBankAccountRequestModel(CreateBankAccountRequestDto requestDto);
+
+  UpdateBankAccountRequestModel toUpdateBankAccountRequestModel(UpdateBankAccountRequestDto requestDto);
 }
