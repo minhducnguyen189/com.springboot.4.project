@@ -4,7 +4,7 @@
 
 Multi-module Spring Boot Maven project with two modules:
 - `table-with-million-records` — REST API with offset/cursor pagination for large datasets
-- `functional-programming` — Bank account & transaction services with functional patterns
+- `functional-programming` — Bank account & transaction services with functional patterns; **package-by-feature** with per-feature OpenAPI specs (see `functional-programming/CLAUDE.md`)
 
 ---
 
@@ -45,7 +45,7 @@ mvn clean package -DskipTests   # Package without tests
 
 ## Key Architecture Patterns
 
-1. **OpenAPI-first**: Define contracts in `open-api.yaml`, generate interfaces, controllers implement them
+1. **OpenAPI-first**: Define contracts in OpenAPI specs, generate interfaces, controllers implement them (`table-with-million-records` uses a single `open-api.yaml`; `functional-programming` uses per-feature specs — see its `CLAUDE.md`)
 2. **JPA Specifications + QBE**: Dynamic filtering via Query by Example + Specification API
 3. **Pagination**: Both offset-based (`PageRequest`) and cursor-based (`sequenceNumber`)
 4. **Exception handling**: `@ControllerAdvice` → standardized `ErrorResponseModel`

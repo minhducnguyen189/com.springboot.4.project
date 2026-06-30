@@ -9,7 +9,7 @@ This is a **Spring Boot multi-module Maven project** focused on studying pattern
 | `table-with-million-records` | REST API demonstrating efficient querying and creation of records in large PostgreSQL tables using offset-based pagination and cursor-based pagination |
 | `functional-programming`     | Bank account & transaction services demonstrating functional programming patterns with repository adapters                                            |
 
-> **Note:** Both modules have fully implemented layered architecture: controllers, services, repositories, entities, mappers, exception handling, and unit tests.
+> **Note:** Both modules implement controllers, services, repositories, entities, mappers, exception handling, and unit tests. `table-with-million-records` is **package-by-layer**; `functional-programming` is **package-by-feature** (vertical slices) — see `functional-programming/CLAUDE.md`.
 
 ---
 
@@ -162,6 +162,8 @@ The OpenAPI generator plugin generates interfaces and models from `open-api.yaml
 
 - API interfaces → `com.springboot.project.generated.api`
 - Models → `com.springboot.project.generated.model` (suffix: `model`)
+
+> The above applies to `table-with-million-records`. `functional-programming` is also OpenAPI-first but splits the spec into per-feature files (`common.yaml`, `bank-account.yaml`, `transaction.yaml`), uses suffix `dto`, and generates into per-feature packages (`...<feature>.generated.{api,dto}`; shared types in `...common.generated.dto`) — see `functional-programming/CLAUDE.md`.
 
 Generated code is cleaned on every `mvn clean` cycle and regenerated on compile. **Do not manually edit files in `target/generated-sources/`.**
 

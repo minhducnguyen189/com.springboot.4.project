@@ -1,0 +1,72 @@
+openapi: 3.0.3
+info:
+  title: Common - OpenAPI 3.0
+  description: Shared schemas referenced by the feature specs
+  version: 1.0.11
+paths: {}
+components:
+  schemas:
+    PaginationRequest:
+      type: object
+      properties:
+        pageSize:
+          type: integer
+          format: int32
+        pageNumber:
+          type: integer
+          format: int32
+        sortBy:
+          type: string
+        sortOrder:
+          $ref: "#/components/schemas/SortOrderEnum"
+        previousPageToken:
+          type: integer
+          format: int64
+        nextPageToken:
+          type: integer
+          format: int64
+    SortOrderEnum:
+      type: string
+      enum:
+        - ASC
+        - DESC
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        status:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    LoginUserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "b644b627-222f-473b-949d-2b880884a955"
+        email:
+          type: string
+          example: "abc@example.com"
+        username:
+          type: string
+          example: "join.wick"
+        name:
+          type: string
+          example: "Join Wick"
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserRoleEnum"
+    UserRoleEnum:
+      type: string
+      enum:
+        - ADMIN
+        - USER

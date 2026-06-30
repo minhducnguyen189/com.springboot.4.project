@@ -165,23 +165,57 @@
                 <artifactId>openapi-generator-maven-plugin</artifactId>
                 <version>${openapi-generator-plugin-version}</version>
                 <executions>
+                    <!-- shared/common schemas: generate models only, no apis/supporting files -->
                     <execution>
+                        <id>common</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
                         <configuration>
-                            <!-- path to the openapi file spec `.yml` -->
                             <inputSpec>
-                                ${project.basedir}/src/main/resources/openapi/open-api.yaml
+                                ${project.basedir}/src/main/resources/openapi/common.yaml
                             </inputSpec>
                             <output>${project.build.directory}/generated-sources/openapi</output>
                             <generatorName>spring</generatorName>
                             <library>spring-boot</library>
-                            <!-- generated package for api interface -->
-                            <apiPackage>com.springboot.project.generated.api</apiPackage>
-                            <!-- generated package for models -->
-                            <modelPackage>com.springboot.project.generated.dto</modelPackage>
-                            <!-- using supportingFilesToGenerate -->
+                            <modelPackage>com.springboot.project.common.generated.dto</modelPackage>
+                            <generateApis>false</generateApis>
+                            <generateSupportingFiles>false</generateSupportingFiles>
+                            <modelNameSuffix>dto</modelNameSuffix>
+                            <verbose>false</verbose>
+                            <configOptions>
+                                <serializableModel>true</serializableModel>
+                                <dateLibrary>java8</dateLibrary>
+                                <java8>false</java8>
+                                <useBeanValidation>true</useBeanValidation>
+                                <performBeanValidation>true</performBeanValidation>
+                                <useOptional>false</useOptional>
+                                <useSpringBoot4>true</useSpringBoot4>
+                                <openApiNullable>false</openApiNullable>
+                                <useJackson3>true</useJackson3>
+                                <sourceFolder>java</sourceFolder>
+                            </configOptions>
+                            <importMappings>
+                                <importMapping>Nullable=org.jspecify.annotations.Nullable</importMapping>
+                            </importMappings>
+                        </configuration>
+                    </execution>
+
+                    <!-- bank-account feature -->
+                    <execution>
+                        <id>bank-account</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>
+                                ${project.basedir}/src/main/resources/openapi/bank-account.yaml
+                            </inputSpec>
+                            <output>${project.build.directory}/generated-sources/openapi</output>
+                            <generatorName>spring</generatorName>
+                            <library>spring-boot</library>
+                            <apiPackage>com.springboot.project.bankaccount.generated.api</apiPackage>
+                            <modelPackage>com.springboot.project.bankaccount.generated.dto</modelPackage>
                             <supportingFilesToGenerate>
                                 ApiUtil.java
                             </supportingFilesToGenerate>
@@ -201,8 +235,70 @@
                                 <useJackson3>true</useJackson3>
                                 <sourceFolder>java</sourceFolder>
                             </configOptions>
+                            <!-- shared types are generated once by the common execution; reference them by
+                                 simple name (schemaMappings suppresses regeneration) and import the common
+                                 class (importMappings) -->
+                            <schemaMappings>
+                                <schemaMapping>PaginationRequest=PaginationRequestDto</schemaMapping>
+                                <schemaMapping>SortOrderEnum=SortOrderEnumDto</schemaMapping>
+                                <schemaMapping>ErrorResponse=ErrorResponseDto</schemaMapping>
+                            </schemaMappings>
                             <importMappings>
                                 <importMapping>Nullable=org.jspecify.annotations.Nullable</importMapping>
+                                <importMapping>PaginationRequestDto=com.springboot.project.common.generated.dto.PaginationRequestDto</importMapping>
+                                <importMapping>SortOrderEnumDto=com.springboot.project.common.generated.dto.SortOrderEnumDto</importMapping>
+                                <importMapping>ErrorResponseDto=com.springboot.project.common.generated.dto.ErrorResponseDto</importMapping>
+                            </importMappings>
+                        </configuration>
+                    </execution>
+
+                    <!-- transaction feature -->
+                    <execution>
+                        <id>transaction</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <inputSpec>
+                                ${project.basedir}/src/main/resources/openapi/transaction.yaml
+                            </inputSpec>
+                            <output>${project.build.directory}/generated-sources/openapi</output>
+                            <generatorName>spring</generatorName>
+                            <library>spring-boot</library>
+                            <apiPackage>com.springboot.project.transaction.generated.api</apiPackage>
+                            <modelPackage>com.springboot.project.transaction.generated.dto</modelPackage>
+                            <supportingFilesToGenerate>
+                                ApiUtil.java
+                            </supportingFilesToGenerate>
+                            <modelNameSuffix>dto</modelNameSuffix>
+                            <verbose>false</verbose>
+                            <configOptions>
+                                <serializableModel>true</serializableModel>
+                                <useTags>true</useTags>
+                                <dateLibrary>java8</dateLibrary>
+                                <java8>false</java8>
+                                <interfaceOnly>true</interfaceOnly>
+                                <useBeanValidation>true</useBeanValidation>
+                                <performBeanValidation>true</performBeanValidation>
+                                <useOptional>false</useOptional>
+                                <useSpringBoot4>true</useSpringBoot4>
+                                <openApiNullable>false</openApiNullable>
+                                <useJackson3>true</useJackson3>
+                                <sourceFolder>java</sourceFolder>
+                            </configOptions>
+                            <!-- shared types are generated once by the common execution; reference them by
+                                 simple name (schemaMappings suppresses regeneration) and import the common
+                                 class (importMappings) -->
+                            <schemaMappings>
+                                <schemaMapping>PaginationRequest=PaginationRequestDto</schemaMapping>
+                                <schemaMapping>SortOrderEnum=SortOrderEnumDto</schemaMapping>
+                                <schemaMapping>ErrorResponse=ErrorResponseDto</schemaMapping>
+                            </schemaMappings>
+                            <importMappings>
+                                <importMapping>Nullable=org.jspecify.annotations.Nullable</importMapping>
+                                <importMapping>PaginationRequestDto=com.springboot.project.common.generated.dto.PaginationRequestDto</importMapping>
+                                <importMapping>SortOrderEnumDto=com.springboot.project.common.generated.dto.SortOrderEnumDto</importMapping>
+                                <importMapping>ErrorResponseDto=com.springboot.project.common.generated.dto.ErrorResponseDto</importMapping>
                             </importMappings>
                         </configuration>
                     </execution>
