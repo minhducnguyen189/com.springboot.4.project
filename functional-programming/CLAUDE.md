@@ -33,10 +33,9 @@ up to **20,000** via `generate_series`.
 ## Package-by-feature layout (`com.springboot.project`)
 ```
 common/        entity(BaseEntity) · exception · handler(GlobalExceptionHandler) · validation(Validation,
-               Validations) · specification(SpecificationHelper) · repository(GenericRepository,
-               RepositoryFactory, RepositoryTypeEnum) · generated.dto (shared DTOs)
-bankaccount/   controller · mapper · service · model · validation · repository · entity · function
-               · generated.{api,dto}
+               Validations) · specification(SpecificationHelper) · repository(GenericRepository)
+               · generated.dto (shared DTOs)
+bankaccount/   controller · mapper · service · model · repository · entity · generated.{api,dto}
 transaction/   controller · mapper · service · model · validation · repository · entity
                · generated.{api,dto}
 ```
@@ -77,7 +76,7 @@ Mappers are MapStruct with a static `MAPPER` field (`XxxMapper.MAPPER.toYyy(...)
 ## The functional-programming patterns (the point of this module)
 - **Validation DSL** (`common/validation/`):
   - `Validation<T>` — custom `@FunctionalInterface` (like `Consumer<T>`): `accept(T)`, `andThen(...)`,
-    and a fluent `doTheSameWithField(T value)` that calls `accept(value)` then returns `this`, so one
+    and a fluent `andField(T value)` that calls `accept(value)` then returns `this`, so one
     validator chains across many fields, ending with `.accept(lastField)`.
   - `Validations` (final, static factories) returns `Validation<T>` lambdas that throw
     `BadRequestException`: `itemMustNotBeNull`, `stringMustNotBeBlank`, `stringMustMatch{Email,Phone,Ifsc}Pattern`,
@@ -99,17 +98,16 @@ Mappers are MapStruct with a static `MAPPER` field (`XxxMapper.MAPPER.toYyy(...)
 - **Cursor pagination is incomplete**: `filter*WithCursor` only changes the `Pageable` (sort + page 0)
   via `buildPageableForCursor`. `SpecificationHelper.cursorPagination` and next/prev tokens are **never
   used**. `totalItems` is always `page.getTotalElements()` (full COUNT — costly at ~1M rows).
-- **Unused / asymmetric code** (don't assume it's wired):
-  - `common.repository.RepositoryFactory` + `RepositoryTypeEnum` + `GenericRepository<T>` — factory has
-    no callers; experimental (and `RepositoryFactory`/`RepositoryTypeEnum` reference both feature ports).
-  - `bankaccount.function.BankAccountFunction` — empty placeholder.
-  - `bankaccount.validation.BankAccountFilterRequestValidation` is **not** called by
-    `BankAccountService.filterBankAccounts`, but its twin `TransactionFilterRequestValidation.validate()`
-    **is** called in `TransactionService.executeFilter` → bank-account filter input is unvalidated.
+- **`GenericRepository<T>`** (`common.repository`) is an empty marker interface — the base of every
+  feature repository port; it declares no methods.
+- **Bank-account filter input is unvalidated**: `BankAccountService` filtering runs no request
+  validation, whereas `TransactionService.executeFilter` calls `TransactionFilterRequestValidation.validate()`.
+- **Services are transactional**: write methods carry `@Transactional`, reads `@Transactional(readOnly = true)`.
+- **`GlobalExceptionHandler`** maps `ResourceNotFoundException` → 404, `BadRequestException` → 400
+  (all `Validations` failures), and any other `Exception` → 500, each via `@ResponseStatus`.
 - **Formatting not enforced here**: root Spotless (Google Java Format AOSP) isn't inherited (no `<parent>`);
   the module mixes 2- and 4-space indentation. Match the file you're editing.
 - **Auth not wired**: no `SecurityFilterChain`; `/private-app/*` endpoints are open. `BadCredentialException`
   is dormant scaffolding.
-- **Unit tests need no database** (pure Mockito/AssertJ); only `bankaccount.service.BankAccountServiceTest` exists.
-- `SpecificationHelper` has a private throwing constructor yet one **non-static** method
-  (`queryJoinTableNumberEqual`) — latent inconsistency; the rest are static.
+- **Unit tests need no database** (pure Mockito/AssertJ): `bankaccount.service.BankAccountServiceTest`
+  and `common.handler.GlobalExceptionHandlerTest`.

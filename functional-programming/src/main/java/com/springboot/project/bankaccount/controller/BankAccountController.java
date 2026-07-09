@@ -4,10 +4,8 @@ import com.springboot.project.bankaccount.mapper.BankAccountDtoMapper;
 import com.springboot.project.bankaccount.generated.api.BankAccountApi;
 import com.springboot.project.bankaccount.generated.dto.*;
 import com.springboot.project.bankaccount.service.IBankAccountService;
-import com.springboot.project.bankaccount.service.BankAccountService;
 import com.springboot.project.bankaccount.model.*;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,8 +17,7 @@ public class BankAccountController implements BankAccountApi {
 
     private final IBankAccountService bankAccountService;
 
-    @Autowired
-    public BankAccountController(BankAccountService bankAccountService) {
+    public BankAccountController(IBankAccountService bankAccountService) {
         this.bankAccountService = bankAccountService;
     }
 

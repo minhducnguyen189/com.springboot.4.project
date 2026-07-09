@@ -2,7 +2,7 @@ package com.springboot.project.common.handler;
 
 import com.springboot.project.common.exception.BadRequestException;
 import com.springboot.project.common.exception.ResourceNotFoundException;
-import com.springboot.project.common.generated.dto.ErrorResponseDto;
+import com.springboot.project.common.generated.model.ErrorResponseModel;
 import java.time.OffsetDateTime;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -16,27 +16,27 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponseDto handleResourceNotFoundException(
+    public ErrorResponseModel handleResourceNotFoundException(
             ResourceNotFoundException ex, WebRequest request) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, ex, request);
     }
 
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponseDto handleBadRequestException(
+    public ErrorResponseModel handleBadRequestException(
             BadRequestException ex, WebRequest request) {
         return buildErrorResponse(HttpStatus.BAD_REQUEST, ex, request);
     }
 
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponseDto handleUnexpectedException(Exception ex, WebRequest request) {
+    public ErrorResponseModel handleUnexpectedException(Exception ex, WebRequest request) {
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex, request);
     }
 
-    private static ErrorResponseDto buildErrorResponse(
+    private static ErrorResponseModel buildErrorResponse(
             HttpStatus status, Exception ex, WebRequest request) {
-        return new ErrorResponseDto()
+        return new ErrorResponseModel()
                 .code(status.value())
                 .message(ex.getMessage())
                 .timestamp(OffsetDateTime.now())
