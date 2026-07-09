@@ -2,22 +2,24 @@ package com.springboot.project.bankaccount.service;
 
 import com.springboot.project.bankaccount.entity.AccountStatusEnumEntity;
 import com.springboot.project.bankaccount.entity.BankAccountEntity;
-import com.springboot.project.bankaccount.repository.IBankAccountRepository;
-import com.springboot.project.bankaccount.service.IBankAccountService;
 import com.springboot.project.bankaccount.mapper.BankAccountModelMapper;
 import com.springboot.project.bankaccount.model.*;
-import com.springboot.project.common.validation.Validations;
+import com.springboot.project.bankaccount.repository.IBankAccountRepository;
+import com.springboot.project.common.exception.ResourceNotFoundException;
+import com.springboot.project.common.generated.dto.PaginationRequestDto;
 import com.springboot.project.common.specification.SpecificationHelper;
+import com.springboot.project.common.validation.Validations;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import com.springboot.project.common.exception.ResourceNotFoundException;
-import com.springboot.project.common.generated.dto.PaginationRequestDto;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class BankAccountService implements IBankAccountService {
@@ -26,12 +28,12 @@ public class BankAccountService implements IBankAccountService {
 
     private final IBankAccountRepository bankAccountRepository;
 
-    @Autowired
     public BankAccountService(IBankAccountRepository bankAccountRepository) {
         this.bankAccountRepository = bankAccountRepository;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BankAccountDetailModel getBankAccount(UUID bankAccountId) {
         Validations.itemMustNotBeNull()
                 .accept(bankAccountId);
@@ -45,28 +47,29 @@ public class BankAccountService implements IBankAccountService {
     }
 
     @Override
+    @Transactional
     public BankAccountDetailModel createBankAccount(
             CreateBankAccountRequestModel createRequest) {
         Validations.itemMustNotBeNull()
-                .doTheSameWithField(createRequest.getFirstName())
-                .doTheSameWithField(createRequest.getLastName())
-                .doTheSameWithField(createRequest.getPhone())
-                .doTheSameWithField(createRequest.getEmail())
-                .doTheSameWithField(createRequest.getAccountNumber())
-                .doTheSameWithField(createRequest.getAccountType())
-                .doTheSameWithField(createRequest.getIfscCode())
-                .doTheSameWithField(createRequest.getBalance())
-                .doTheSameWithField(createRequest.getCurrency())
-                .doTheSameWithField(createRequest.getStreet())
-                .doTheSameWithField(createRequest.getStreetNumber())
-                .doTheSameWithField(createRequest.getPostalCode())
-                .doTheSameWithField(createRequest.getCity())
+                .andField(createRequest.getFirstName())
+                .andField(createRequest.getLastName())
+                .andField(createRequest.getPhone())
+                .andField(createRequest.getEmail())
+                .andField(createRequest.getAccountNumber())
+                .andField(createRequest.getAccountType())
+                .andField(createRequest.getIfscCode())
+                .andField(createRequest.getBalance())
+                .andField(createRequest.getCurrency())
+                .andField(createRequest.getStreet())
+                .andField(createRequest.getStreetNumber())
+                .andField(createRequest.getPostalCode())
+                .andField(createRequest.getCity())
                 .accept(createRequest.getCountry());
 
         Validations.stringMustNotBeBlank()
-                .doTheSameWithField(createRequest.getFirstName())
-                .doTheSameWithField(createRequest.getLastName())
-                .doTheSameWithField(createRequest.getAccountNumber())
+                .andField(createRequest.getFirstName())
+                .andField(createRequest.getLastName())
+                .andField(createRequest.getAccountNumber())
                 .accept(createRequest.getPhone());
 
         Validations.stringMustMatchEmailPattern()
@@ -90,6 +93,7 @@ public class BankAccountService implements IBankAccountService {
     }
 
     @Override
+    @Transactional
     public BankAccountDetailModel updateBankAccount(
             UUID bankAccountId, UpdateBankAccountRequestModel updateRequest) {
         Validations.itemMustNotBeNull()
@@ -125,6 +129,7 @@ public class BankAccountService implements IBankAccountService {
     }
 
     @Override
+    @Transactional
     public void deleteBankAccount(UUID bankAccountId) {
         Validations.itemMustNotBeNull()
                 .accept(bankAccountId);
@@ -140,12 +145,14 @@ public class BankAccountService implements IBankAccountService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BankAccountFilterResponseModel filterBankAccounts(
             BankAccountFilterRequestModel filterRequest) {
         return executeFilter(filterRequest, SpecificationHelper::buildPageable);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public BankAccountFilterResponseModel filterBankAccountsWithCursor(
             BankAccountFilterRequestModel filterRequest) {
         return executeFilter(filterRequest, pagination ->

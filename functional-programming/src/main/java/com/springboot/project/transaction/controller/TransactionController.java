@@ -8,14 +8,12 @@ import com.springboot.project.transaction.generated.dto.TransactionFilterRequest
 import com.springboot.project.transaction.generated.dto.TransactionFilterResponseDto;
 import com.springboot.project.transaction.generated.dto.UpdateTransactionRequestDto;
 import com.springboot.project.transaction.service.ITransactionService;
-import com.springboot.project.transaction.service.TransactionService;
 import com.springboot.project.transaction.model.CreateTransactionRequestModel;
 import com.springboot.project.transaction.model.TransactionDetailModel;
 import com.springboot.project.transaction.model.TransactionFilterRequestModel;
 import com.springboot.project.transaction.model.TransactionFilterResponseModel;
 import com.springboot.project.transaction.model.UpdateTransactionRequestModel;
 import java.util.UUID;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,8 +25,7 @@ public class TransactionController implements TransactionApi {
 
     private final ITransactionService transactionService;
 
-    @Autowired
-    public TransactionController(TransactionService transactionService) {
+    public TransactionController(ITransactionService transactionService) {
         this.transactionService = transactionService;
     }
 

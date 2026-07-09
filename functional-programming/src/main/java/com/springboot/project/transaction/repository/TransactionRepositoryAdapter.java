@@ -1,13 +1,10 @@
 package com.springboot.project.transaction.repository;
 
 import com.springboot.project.transaction.entity.TransactionDetailEntity;
-import com.springboot.project.transaction.repository.TransactionRepository;
-import com.springboot.project.transaction.repository.ITransactionRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,7 +16,6 @@ public class TransactionRepositoryAdapter implements ITransactionRepository {
 
     private final TransactionRepository transactionRepository;
 
-    @Autowired
     public TransactionRepositoryAdapter(TransactionRepository transactionRepository) {
         this.transactionRepository = transactionRepository;
     }

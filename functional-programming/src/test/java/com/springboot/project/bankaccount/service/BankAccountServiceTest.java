@@ -12,7 +12,7 @@ class BankAccountServiceTest {
   private static final String NULL_ERROR_MESSAGE = "The expected item for checking must not be null";
 
   @Test
-  void validate_function_test() {
+  void should_throwBadRequest_when_aChainedFieldIsNull() {
     BankAccountFilterRequestModel filterRequest = new BankAccountFilterRequestModel();
     filterRequest.setAccountNumber("AAAAA");
     filterRequest.setEmail("abc@gmail.com");
@@ -20,11 +20,11 @@ class BankAccountServiceTest {
     filterRequest.setFirstName("FirstName");
 
     assertThatThrownBy(() -> { Validations.itemMustNotBeNull()
-            .doTheSameWithField(filterRequest.getEmail())
-            .doTheSameWithField(filterRequest.getPhone())
-            .doTheSameWithField(filterRequest.getLastName())
-            .doTheSameWithField(filterRequest.getFirstName())
-            .doTheSameWithField(filterRequest.getIfscCode())
+            .andField(filterRequest.getEmail())
+            .andField(filterRequest.getPhone())
+            .andField(filterRequest.getLastName())
+            .andField(filterRequest.getFirstName())
+            .andField(filterRequest.getIfscCode())
             .accept(filterRequest.getAccountNumber());
     }).isInstanceOf(BadRequestException.class)
             .hasMessage(NULL_ERROR_MESSAGE);
