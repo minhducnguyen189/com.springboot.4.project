@@ -1,16 +1,19 @@
 package com.springboot.project.common.specification;
 
-import com.springboot.project.common.generated.dto.PaginationRequestDto;
+import com.springboot.project.common.generated.model.PaginationRequestModel;
 import jakarta.persistence.criteria.Predicate;
 import java.util.*;
+import java.util.function.Function;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.convert.QueryByExamplePredicateBuilder;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.FluentQuery;
 
 public final class SpecificationHelper {
 
@@ -46,7 +49,7 @@ public final class SpecificationHelper {
         }
     }
 
-    public static Pageable buildPageable(PaginationRequestDto paginationRequest) {
+    public static Pageable buildPageable(PaginationRequestModel paginationRequest) {
         Integer pageNum = paginationRequest.getPageNumber();
         Integer size = paginationRequest.getPageSize();
         int pageNumber = Objects.nonNull(pageNum) ? pageNum : 0;
@@ -65,7 +68,7 @@ public final class SpecificationHelper {
         return pageable;
     }
 
-    public static Pageable buildPageableForCursor(PaginationRequestDto paginationRequest,
+    public static Pageable buildPageableForCursor(PaginationRequestModel paginationRequest,
             String defaultCursorProperty) {
         Integer size = paginationRequest.getPageSize();
         int pageSize = Objects.nonNull(size) ? size : 50;
@@ -102,4 +105,51 @@ public final class SpecificationHelper {
                     : cb.lessThan(root.get(idPropertyName), cursorValue);
         };
     }
+
+    public static ExampleMatcher containingIgnoreCaseMatcher() {
+        return ExampleMatcher.matching()
+                .withIgnoreNullValues()
+                .withIgnoreCase()
+                .withNullHandler(ExampleMatcher.NullHandler.IGNORE)
+                .withStringMatcher(ExampleMatcher.StringMatcher.CONTAINING);
+    }
+
+    /**
+     * Builds the cursor-narrowed specification, sort and page size for a keyset (cursor) page.
+     * When a previous-page token is present the sort is reversed so the page is fetched walking
+     * backwards; callers are responsible for presenting rows in their natural order.
+     */
+    public static <T> CursorQuery<T> buildCursorQuery(
+            Specification<T> baseSpecification,
+            PaginationRequestModel pagination,
+            String cursorProperty) {
+        Pageable pageable = buildPageableForCursor(pagination, cursorProperty);
+        Sort sort = pageable.getSort();
+        Specification<T> specification = baseSpecification;
+
+        Long nextPageToken = pagination.getNextPageToken();
+        if (nextPageToken != null) {
+            specification = specification.and(cursorPagination(sort, cursorProperty, nextPageToken, false));
+        }
+
+        Long previousPageToken = pagination.getPreviousPageToken();
+        if (previousPageToken != null) {
+            specification = specification.and(cursorPagination(sort, cursorProperty, previousPageToken, true));
+            if (sort.isSorted()) {
+                sort = sort.descending();
+            }
+        }
+        return new CursorQuery<>(specification, sort, pageable.getPageSize());
+    }
+
+    public static <T> Function<FluentQuery.FetchableFluentQuery<T>, List<T>> limitedSortedQuery(
+            Sort sort, int pageSize) {
+        return query ->
+                sort.isSorted()
+                        ? query.sortBy(sort).limit(pageSize).all()
+                        : query.limit(pageSize).all();
+    }
+
+    /** The specification, sort and page size that together fetch a single cursor page. */
+    public record CursorQuery<T>(Specification<T> specification, Sort sort, int pageSize) {}
 }

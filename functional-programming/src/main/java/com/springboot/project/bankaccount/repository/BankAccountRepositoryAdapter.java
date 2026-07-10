@@ -1,13 +1,10 @@
 package com.springboot.project.bankaccount.repository;
 
 import com.springboot.project.bankaccount.entity.BankAccountEntity;
-import com.springboot.project.bankaccount.repository.BankAccountRepository;
-import com.springboot.project.bankaccount.repository.IBankAccountRepository;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,7 +16,6 @@ public class BankAccountRepositoryAdapter implements IBankAccountRepository {
 
     private final BankAccountRepository bankAccountRepository;
 
-    @Autowired
     public BankAccountRepositoryAdapter(BankAccountRepository bankAccountRepository) {
         this.bankAccountRepository = bankAccountRepository;
     }

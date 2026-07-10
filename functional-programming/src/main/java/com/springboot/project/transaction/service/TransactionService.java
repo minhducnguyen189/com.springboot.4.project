@@ -1,30 +1,32 @@
 package com.springboot.project.transaction.service;
 
 import com.springboot.project.bankaccount.entity.BankAccountEntity;
+import com.springboot.project.common.exception.ResourceNotFoundException;
+import com.springboot.project.common.generated.dto.PaginationRequestDto;
+import com.springboot.project.common.specification.SpecificationHelper;
+import com.springboot.project.common.validation.Validations;
 import com.springboot.project.transaction.entity.TransactionDetailEntity;
 import com.springboot.project.transaction.entity.TransactionStatusEnumEntity;
-import com.springboot.project.common.exception.ResourceNotFoundException;
-import com.springboot.project.common.validation.Validations;
-import com.springboot.project.transaction.repository.ITransactionBankAccountRepository;
-import com.springboot.project.transaction.repository.ITransactionRepository;
-import com.springboot.project.transaction.service.ITransactionService;
 import com.springboot.project.transaction.mapper.TransactionModelMapper;
 import com.springboot.project.transaction.model.CreateTransactionRequestModel;
 import com.springboot.project.transaction.model.TransactionDetailModel;
 import com.springboot.project.transaction.model.TransactionFilterRequestModel;
 import com.springboot.project.transaction.model.TransactionFilterResponseModel;
 import com.springboot.project.transaction.model.UpdateTransactionRequestModel;
+import com.springboot.project.transaction.repository.ITransactionBankAccountRepository;
+import com.springboot.project.transaction.repository.ITransactionRepository;
 import com.springboot.project.transaction.validation.TransactionFilterRequestValidation;
-import com.springboot.project.common.specification.SpecificationHelper;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.ExampleMatcher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import com.springboot.project.common.generated.dto.PaginationRequestDto;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class TransactionService implements ITransactionService {
@@ -35,7 +37,6 @@ public class TransactionService implements ITransactionService {
     private final ITransactionRepository transactionRepository;
     private final ITransactionBankAccountRepository bankAccountRepository;
 
-    @Autowired
     public TransactionService(
             ITransactionRepository transactionRepository,
             ITransactionBankAccountRepository bankAccountRepository) {
@@ -44,6 +45,7 @@ public class TransactionService implements ITransactionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TransactionDetailModel getTransaction(UUID transactionId) {
         Validations.itemMustNotBeNull()
                 .accept(transactionId);
@@ -57,21 +59,22 @@ public class TransactionService implements ITransactionService {
     }
 
     @Override
+    @Transactional
     public TransactionDetailModel createTransaction(
             CreateTransactionRequestModel createRequest) {
         Validations.itemMustNotBeNull()
-                .doTheSameWithField(createRequest.getBankAccountId())
-                .doTheSameWithField(createRequest.getTaxAmount())
-                .doTheSameWithField(createRequest.getNetValue())
-                .doTheSameWithField(createRequest.getPaymentMethod())
-                .doTheSameWithField(createRequest.getValue())
+                .andField(createRequest.getBankAccountId())
+                .andField(createRequest.getTaxAmount())
+                .andField(createRequest.getNetValue())
+                .andField(createRequest.getPaymentMethod())
+                .andField(createRequest.getValue())
                 .accept(createRequest.getDate());
         Validations.numberMustBePositive()
-                .doTheSameWithField(createRequest.getTaxAmount())
-                .doTheSameWithField(createRequest.getNetValue())
-                .doTheSameWithField(createRequest.getValue());
+                .andField(createRequest.getTaxAmount())
+                .andField(createRequest.getNetValue())
+                .andField(createRequest.getValue());
         Validations.stringMustNotBeBlank()
-                .doTheSameWithField(createRequest.getLocation());
+                .andField(createRequest.getLocation());
 
         BankAccountEntity bankAccount = bankAccountRepository
                 .findById(createRequest.getBankAccountId())
@@ -91,6 +94,7 @@ public class TransactionService implements ITransactionService {
     }
 
     @Override
+    @Transactional
     public TransactionDetailModel updateTransaction(
             UUID transactionId, UpdateTransactionRequestModel updateRequest) {
         Validations.itemMustNotBeNull()
@@ -137,6 +141,7 @@ public class TransactionService implements ITransactionService {
     }
 
     @Override
+    @Transactional
     public void deleteTransaction(UUID transactionId) {
         Validations.itemMustNotBeNull()
                 .accept(transactionId);
@@ -152,12 +157,14 @@ public class TransactionService implements ITransactionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TransactionFilterResponseModel filterTransactions(
             TransactionFilterRequestModel filterRequest) {
         return executeFilter(filterRequest, SpecificationHelper::buildPageable);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TransactionFilterResponseModel filterTransactionsWithCursor(
             TransactionFilterRequestModel filterRequest) {
         return executeFilter(filterRequest, pagination ->

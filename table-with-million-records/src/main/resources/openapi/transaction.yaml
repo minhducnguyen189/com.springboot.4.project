@@ -1,0 +1,453 @@
+openapi: 3.0.3
+info:
+  title: Transaction - OpenAPI 3.0
+  description: Everything about transactions
+  version: 1.0.11
+servers:
+  - url: /api
+tags:
+  - name: transaction
+    description: Everything about transactions
+paths:
+  /private-app/transactions:
+    post:
+      tags:
+        - transaction
+      summary: create a new transaction
+      description: create a new transaction and save it into database
+      operationId: createTransaction
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: create transaction request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTransactionRequest"
+      responses:
+        "201":
+          description: transaction created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionDetail"
+        "401":
+          description: Unauthorized
+        "400":
+          description: bad request operation
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+        "403":
+          description: forbidden
+        "500":
+          description: internal server error operation
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+
+  /private-app/transactions/{transaction-id}:
+    get:
+      tags:
+        - transaction
+      summary: get a transaction by ID
+      description: get a transaction detail by its ID
+      operationId: getTransaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: transaction-id
+          in: path
+          description: ID of the transaction to retrieve
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: transaction retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionDetail"
+        "401":
+          description: Unauthorized
+        "403":
+          description: forbidden
+        "404":
+          description: transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+        "500":
+          description: internal server error operation
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+    put:
+      tags:
+        - transaction
+      summary: update an existing transaction
+      description: update an existing transaction by its ID
+      operationId: updateTransaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: transaction-id
+          in: path
+          description: ID of the transaction to update
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: update transaction request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTransactionRequest"
+      responses:
+        "200":
+          description: transaction updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionDetail"
+        "401":
+          description: Unauthorized
+        "400":
+          description: bad request operation
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+        "403":
+          description: forbidden
+        "404":
+          description: transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+        "500":
+          description: internal server error operation
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+    delete:
+      tags:
+        - transaction
+      summary: soft delete a transaction
+      description: soft delete a transaction by setting its status to DELETED
+      operationId: deleteTransaction
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: transaction-id
+          in: path
+          description: ID of the transaction to delete
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: transaction deleted successfully
+        "401":
+          description: Unauthorized
+        "403":
+          description: forbidden
+        "404":
+          description: transaction not found
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+        "500":
+          description: internal server error operation
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+
+  /private-app/transactions/actions/filter:
+    post:
+      tags:
+        - transaction
+      summary: filter transactions
+      description: filter transactions
+      operationId: filterTransactions
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: filter request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionFilterRequest"
+      responses:
+        "200":
+          description: filter transaction response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionFilterResponse"
+        "401":
+          description: Unauthorized
+        "400":
+          description: bad request operation
+        "403":
+          description: forbidden
+        "404":
+          description: not found operation
+        "500":
+          description: internal server error operation
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+
+  /private-app/transactions/actions/filter-cursor:
+    post:
+      tags:
+        - transaction
+      summary: filter transactions with cursor
+      description: filter transactions with cursor
+      operationId: filterTransactionsWithCursor
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: filter request
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionFilterRequest"
+      responses:
+        "200":
+          description: filter transaction response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionFilterResponse"
+        "401":
+          description: Unauthorized
+        "400":
+          description: bad request operation
+        "403":
+          description: forbidden
+        "404":
+          description: not found operation
+        "500":
+          description: internal server error operation
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+components:
+  schemas:
+    TransactionFilterResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TransactionDetail"
+        foundItems:
+          type: integer
+          format: int64
+        totalItems:
+          type: integer
+          format: int64
+        previousPageToken:
+          type: integer
+          format: int64
+        nextPageToken:
+          type: integer
+          format: int64
+    TransactionDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        transactionNumber:
+          type: string
+        sequenceNumber:
+          type: integer
+          format: int64
+        date:
+          type: string
+          format: date
+        domain:
+          $ref: "#/components/schemas/DomainEnum"
+        location:
+          type: string
+        value:
+          type: number
+          format: decimal
+        status:
+          $ref: "#/components/schemas/TransactionStatusEnum"
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethodEnum"
+        taxAmount:
+          type: number
+          format: decimal
+        netValue:
+          type: number
+          format: decimal
+        bankAccountId:
+          type: string
+          format: uuid
+    CreateTransactionRequest:
+      type: object
+      required:
+        - date
+        - domain
+        - location
+        - value
+        - status
+        - paymentMethod
+        - bankAccountId
+      properties:
+        date:
+          type: string
+          format: date
+        domain:
+          $ref: "#/components/schemas/DomainEnum"
+        location:
+          type: string
+        value:
+          type: number
+          format: decimal
+        status:
+          $ref: "#/components/schemas/TransactionStatusEnum"
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethodEnum"
+        taxAmount:
+          type: number
+          format: decimal
+        netValue:
+          type: number
+          format: decimal
+        bankAccountId:
+          type: string
+          format: uuid
+    UpdateTransactionRequest:
+      type: object
+      required:
+        - date
+        - domain
+        - location
+        - value
+        - status
+        - paymentMethod
+        - bankAccountId
+      properties:
+        date:
+          type: string
+          format: date
+        domain:
+          $ref: "#/components/schemas/DomainEnum"
+        location:
+          type: string
+        value:
+          type: number
+          format: decimal
+        status:
+          $ref: "#/components/schemas/TransactionStatusEnum"
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethodEnum"
+        taxAmount:
+          type: number
+          format: decimal
+        netValue:
+          type: number
+          format: decimal
+        bankAccountId:
+          type: string
+          format: uuid
+    TransactionFilterRequest:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+        domain:
+          $ref: "#/components/schemas/DomainEnum"
+        location:
+          type: string
+        value:
+          type: number
+          format: decimal
+        status:
+          $ref: "#/components/schemas/TransactionStatusEnum"
+        paymentMethod:
+          $ref: "#/components/schemas/PaymentMethodEnum"
+        taxAmount:
+          type: number
+          format: decimal
+        netValue:
+          type: number
+          format: decimal
+        pagination:
+          $ref: "./common.yaml#/components/schemas/PaginationRequest"
+    DomainEnum:
+      type: string
+      enum:
+        - EDUCATION
+        - INTERNATIONAL
+        - INVESTMENTS
+        - MEDICAL
+        - PUBLIC
+        - RESTAURANT
+        - RETAIL
+    TransactionStatusEnum:
+      type: string
+      enum:
+        - SUCCESS
+        - FAILED
+        - CANCELLED
+        - DELETED
+    PaymentMethodEnum:
+      type: string
+      enum:
+        - CARD
+        - CASH
+        - UPI

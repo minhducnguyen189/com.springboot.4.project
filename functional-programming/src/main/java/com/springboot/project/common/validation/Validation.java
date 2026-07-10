@@ -28,11 +28,10 @@ public interface Validation<T> {
     };
   }
 
-  default Validation<T> doTheSameWithField(T value) {
+  default Validation<T> andField(T value) {
     this.accept(value);
     return this;
   }
-
 
 
 }
