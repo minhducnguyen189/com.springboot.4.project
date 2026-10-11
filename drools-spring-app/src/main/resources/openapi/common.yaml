@@ -1,0 +1,23 @@
+openapi: 3.0.3
+info:
+  title: Common - OpenAPI 3.0
+  description: Shared schemas referenced by the feature specs
+  version: 1.0.0
+paths: {}
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        status:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+        timestamp:
+          type: string
+          format: date-time

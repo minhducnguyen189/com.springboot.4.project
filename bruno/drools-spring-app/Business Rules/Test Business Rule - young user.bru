@@ -1,0 +1,182 @@
+meta {
+  name: Test Business Rule - young user
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/v1/drools/business-rules/actions/test
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "data": {
+      "price": 150,
+      "name": "Laptop",
+      "quantity": 3,
+      "user": {
+        "birthDate": "{{youngUserBirthDate}}",
+        "membershipLevel": "GOLD"
+      },
+      "order": {
+        "total": 160,
+        "items": null
+      }
+    },
+    "businessRule": {
+      "name": "ComplexBusinessRulePackage",
+      "imports": [
+        "com.springboot.project.common.util.JsonNodeHelper",
+        "com.springboot.project.common.util.DateTimeHelper",
+        "com.springboot.project.businessrule.fact.GenericObject",
+        "java.time.LocalDate"
+      ],
+      "globals": [
+        {
+          "type": "com.springboot.project.businessrule.fact.ResultObject",
+          "identifier": "result"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "HighValueOrderRule",
+          "when": [
+            {
+              "identifier": "$data",
+              "type": "GenericObject",
+              "conditions": [
+                "$total: getJsonPropertyAsInt(\"/order/total\") != null",
+                "$item: getJsonPropertyAsInt(\"/order/items\") != null",
+                "$total > 100",
+                "$item >= 3"
+              ]
+            }
+          ],
+          "then": [
+            {
+              "actions": [
+                "System.out.println(\"High value order detected with total: \" + $total)",
+                "result.getResult().put(\"highValueOrder\", true)"
+              ]
+            }
+          ],
+          "conflicts": [
+            {
+              "name": "MissingOrderFields",
+              "identifier": "$data",
+              "type": "GenericObject",
+              "conditions": [
+                "$isNull: (getJsonPropertyAsInt(\"/order/total\") == null || getJsonPropertyAsInt(\"/order/items\") == null)"
+              ],
+              "actions": [
+                "System.out.println(\"Some order values are missing\")",
+                "result.getResult().put(\"conflict\", \"Missing order data\")"
+              ],
+              "conflictDescription": "Some required fields are missing"
+            }
+          ]
+        },
+        {
+          "rule": "PremiumMemberDiscountRule",
+          "when": [
+            {
+              "identifier": "$data",
+              "type": "GenericObject",
+              "conditions": [
+                "$total: getJsonPropertyAsInt(\"/order/total\") != null",
+                "$membershipLevel: getJsonPropertyAsString(\"/user/membershipLevel\") != null",
+                "$membershipLevel.equals(\"GOLD\") || $membershipLevel.equals(\"PLATINUM\")",
+                "$total > 100"
+              ]
+            }
+          ],
+          "then": [
+            {
+              "actions": [
+                "System.out.println(\"Premium member eligible for discount: \" + $membershipLevel)",
+                "result.getResult().put(\"eligibleForDiscount\", true)"
+              ]
+            }
+          ]
+        },
+        {
+          "rule": "YoungUserSpecialRule",
+          "when": [
+            {
+              "identifier": "$data",
+              "type": "GenericObject",
+              "conditions": [
+                "$price: getJsonPropertyAsInt(\"/price\") != null",
+                "$quantity: getJsonPropertyAsInt(\"/quantity\") != null",
+                "$birthDate: getJsonPropertyAsString(\"/user/birthDate\") != null",
+                "DateTimeHelper.calculateAge(DateTimeHelper.toLocalDate($birthDate), LocalDate.now()) < 30",
+                "$price > 100",
+                "$quantity > 2"
+              ]
+            }
+          ],
+          "then": [
+            {
+              "actions": [
+                "System.out.println(\"Young user buying expensive product with quantity > 2\")",
+                "result.getResult().put(\"youngUserBonus\", true)"
+              ]
+            }
+          ]
+        },
+        {
+          "rule": "NotUserSpecialRule",
+          "when": [
+            {
+              "identifier": "$data",
+              "type": "GenericObject",
+              "conditions": [
+                "$birthDate: getJsonPropertyAsString(\"/user/birthDate\") != null",
+                "DateTimeHelper.calculateAge(DateTimeHelper.toLocalDate($birthDate), LocalDate.now()) >= 30"
+              ]
+            }
+          ],
+          "then": [
+            {
+              "actions": [
+                "System.out.println(\"Normal adult user with age >= 30\")",
+                "result.getResult().put(\"youngUserBonus\", false)"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+script:pre-request {
+  const birthDate = new Date();
+  birthDate.setFullYear(birthDate.getFullYear() - 20);
+  bru.setVar("youngUserBirthDate", birthDate.toISOString().slice(0, 10));
+}
+
+tests {
+  test("responds 200", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("user under 30 buying an expensive product in bulk gets the bonus", function () {
+    expect(res.body.result.youngUserBonus).to.equal(true);
+  });
+}
+
+settings {
+  encodeUrl: true
+}
+
+docs {
+  Same example rule with a buyer who is 20 years old today (birth date computed in the pre-request
+  script). Needs no database.
+}

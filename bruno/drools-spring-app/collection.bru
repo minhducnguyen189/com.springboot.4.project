@@ -1,0 +1,23 @@
+meta {
+  name: Drools Spring App API
+}
+
+auth {
+  mode: none
+}
+
+docs {
+  Bruno collection for the `drools-spring-app` module.
+
+  Business rules are defined as JSON, rendered to DRL and executed with Drools.
+
+  Start the app first (port 8080):
+
+      cd drools-spring-app && mvn spring-boot:run
+
+  - "Test Business Rule" requests need no database.
+  - "Create" / "Get" requests need MongoDB at mongodb://root:example@localhost:27017/admin.
+
+  Select the "Local" environment. Running the whole collection works as a smoke test: every request
+  has assertions. "Create Business Rule (example)" stores the created id in the businessRuleId variable.
+}

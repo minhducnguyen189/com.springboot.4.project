@@ -1,0 +1,171 @@
+meta {
+  name: Create Business Rule (example)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/v1/drools/business-rules
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "businessRule": {
+      "name": "ComplexBusinessRulePackage",
+      "imports": [
+        "com.springboot.project.common.util.JsonNodeHelper",
+        "com.springboot.project.common.util.DateTimeHelper",
+        "com.springboot.project.businessrule.fact.GenericObject",
+        "java.time.LocalDate"
+      ],
+      "globals": [
+        {
+          "type": "com.springboot.project.businessrule.fact.ResultObject",
+          "identifier": "result"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "HighValueOrderRule",
+          "when": [
+            {
+              "identifier": "$data",
+              "type": "GenericObject",
+              "conditions": [
+                "$total: getJsonPropertyAsInt(\"/order/total\") != null",
+                "$item: getJsonPropertyAsInt(\"/order/items\") != null",
+                "$total > 100",
+                "$item >= 3"
+              ]
+            }
+          ],
+          "then": [
+            {
+              "actions": [
+                "System.out.println(\"High value order detected with total: \" + $total)",
+                "result.getResult().put(\"highValueOrder\", true)"
+              ]
+            }
+          ],
+          "conflicts": [
+            {
+              "name": "MissingOrderFields",
+              "identifier": "$data",
+              "type": "GenericObject",
+              "conditions": [
+                "$isNull: (getJsonPropertyAsInt(\"/order/total\") == null || getJsonPropertyAsInt(\"/order/items\") == null)"
+              ],
+              "actions": [
+                "System.out.println(\"Some order values are missing\")",
+                "result.getResult().put(\"conflict\", \"Missing order data\")"
+              ],
+              "conflictDescription": "Some required fields are missing"
+            }
+          ]
+        },
+        {
+          "rule": "PremiumMemberDiscountRule",
+          "when": [
+            {
+              "identifier": "$data",
+              "type": "GenericObject",
+              "conditions": [
+                "$total: getJsonPropertyAsInt(\"/order/total\") != null",
+                "$membershipLevel: getJsonPropertyAsString(\"/user/membershipLevel\") != null",
+                "$membershipLevel.equals(\"GOLD\") || $membershipLevel.equals(\"PLATINUM\")",
+                "$total > 100"
+              ]
+            }
+          ],
+          "then": [
+            {
+              "actions": [
+                "System.out.println(\"Premium member eligible for discount: \" + $membershipLevel)",
+                "result.getResult().put(\"eligibleForDiscount\", true)"
+              ]
+            }
+          ]
+        },
+        {
+          "rule": "YoungUserSpecialRule",
+          "when": [
+            {
+              "identifier": "$data",
+              "type": "GenericObject",
+              "conditions": [
+                "$price: getJsonPropertyAsInt(\"/price\") != null",
+                "$quantity: getJsonPropertyAsInt(\"/quantity\") != null",
+                "$birthDate: getJsonPropertyAsString(\"/user/birthDate\") != null",
+                "DateTimeHelper.calculateAge(DateTimeHelper.toLocalDate($birthDate), LocalDate.now()) < 30",
+                "$price > 100",
+                "$quantity > 2"
+              ]
+            }
+          ],
+          "then": [
+            {
+              "actions": [
+                "System.out.println(\"Young user buying expensive product with quantity > 2\")",
+                "result.getResult().put(\"youngUserBonus\", true)"
+              ]
+            }
+          ]
+        },
+        {
+          "rule": "NotUserSpecialRule",
+          "when": [
+            {
+              "identifier": "$data",
+              "type": "GenericObject",
+              "conditions": [
+                "$birthDate: getJsonPropertyAsString(\"/user/birthDate\") != null",
+                "DateTimeHelper.calculateAge(DateTimeHelper.toLocalDate($birthDate), LocalDate.now()) >= 30"
+              ]
+            }
+          ],
+          "then": [
+            {
+              "actions": [
+                "System.out.println(\"Normal adult user with age >= 30\")",
+                "result.getResult().put(\"youngUserBonus\", false)"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("businessRuleId", res.body.id);
+  }
+}
+
+tests {
+  test("responds 201", function () {
+    expect(res.status).to.equal(201);
+  });
+
+  test("stores the definition under the package name", function () {
+    expect(res.body.id).to.be.a("string");
+    expect(res.body.name).to.equal("ComplexBusinessRulePackage");
+    expect(res.body.definition.rules).to.have.lengthOf(4);
+  });
+}
+
+settings {
+  encodeUrl: true
+}
+
+docs {
+  Stores the example rule definition. Needs MongoDB. The created id is saved in the businessRuleId
+  variable.
+}
