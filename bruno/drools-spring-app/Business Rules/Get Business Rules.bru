@@ -1,0 +1,31 @@
+meta {
+  name: Get Business Rules
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/v1/drools/business-rules
+  body: none
+  auth: inherit
+}
+
+tests {
+  test("responds 200", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("lists the rule created by Create Business Rule (example)", function () {
+    const ids = res.body.map(function (rule) { return rule.id; });
+    expect(ids).to.include(bru.getVar("businessRuleId"));
+  });
+}
+
+settings {
+  encodeUrl: true
+}
+
+docs {
+  Lists all stored business rules. Needs MongoDB. Run "Create Business Rule (example)" first for the
+  second assertion.
+}

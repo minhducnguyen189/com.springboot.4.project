@@ -2,9 +2,10 @@
 
 ## Project Overview
 
-Multi-module Spring Boot Maven project with two modules:
+Multi-module Spring Boot Maven project with three modules:
 - `table-with-million-records` — REST API with offset/cursor pagination for large datasets
 - `functional-programming` — Bank account & transaction services with functional patterns; **package-by-feature** with per-feature OpenAPI specs (see `functional-programming/CLAUDE.md`)
+- `drools-spring-app` — Drools 10 business rules defined as typed JSON, stored in MongoDB, tested via REST; port of `drools-spring-app-v3` (see `drools-spring-app/CLAUDE.md`)
 
 ---
 

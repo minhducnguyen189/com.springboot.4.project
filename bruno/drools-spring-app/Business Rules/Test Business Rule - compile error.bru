@@ -1,0 +1,178 @@
+meta {
+  name: Test Business Rule - compile error
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/v1/drools/business-rules/actions/test
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "data": {
+      "price": 150,
+      "name": "Laptop",
+      "quantity": 3,
+      "user": {
+        "birthDate": "1992-09-18",
+        "membershipLevel": "GOLD"
+      },
+      "order": {
+        "total": 160,
+        "items": null
+      }
+    },
+    "businessRule": {
+      "name": "ComplexBusinessRulePackage",
+      "imports": [
+        "com.springboot.project.common.util.JsonNodeHelper",
+        "com.springboot.project.common.util.DateTimeHelper",
+        "com.springboot.project.businessrule.fact.GenericObject",
+        "java.time.LocalDate"
+      ],
+      "globals": [
+        {
+          "type": "com.springboot.project.businessrule.fact.ResultObject",
+          "identifier": "result"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "HighValueOrderRule",
+          "when": [
+            {
+              "identifier": "$data",
+              "type": "UnknownFact",
+              "conditions": [
+                "$total: getJsonPropertyAsInt(\"/order/total\") != null",
+                "$item: getJsonPropertyAsInt(\"/order/items\") != null",
+                "$total > 100",
+                "$item >= 3"
+              ]
+            }
+          ],
+          "then": [
+            {
+              "actions": [
+                "System.out.println(\"High value order detected with total: \" + $total)",
+                "result.getResult().put(\"highValueOrder\", true)"
+              ]
+            }
+          ],
+          "conflicts": [
+            {
+              "name": "MissingOrderFields",
+              "identifier": "$data",
+              "type": "GenericObject",
+              "conditions": [
+                "$isNull: (getJsonPropertyAsInt(\"/order/total\") == null || getJsonPropertyAsInt(\"/order/items\") == null)"
+              ],
+              "actions": [
+                "System.out.println(\"Some order values are missing\")",
+                "result.getResult().put(\"conflict\", \"Missing order data\")"
+              ],
+              "conflictDescription": "Some required fields are missing"
+            }
+          ]
+        },
+        {
+          "rule": "PremiumMemberDiscountRule",
+          "when": [
+            {
+              "identifier": "$data",
+              "type": "GenericObject",
+              "conditions": [
+                "$total: getJsonPropertyAsInt(\"/order/total\") != null",
+                "$membershipLevel: getJsonPropertyAsString(\"/user/membershipLevel\") != null",
+                "$membershipLevel.equals(\"GOLD\") || $membershipLevel.equals(\"PLATINUM\")",
+                "$total > 100"
+              ]
+            }
+          ],
+          "then": [
+            {
+              "actions": [
+                "System.out.println(\"Premium member eligible for discount: \" + $membershipLevel)",
+                "result.getResult().put(\"eligibleForDiscount\", true)"
+              ]
+            }
+          ]
+        },
+        {
+          "rule": "YoungUserSpecialRule",
+          "when": [
+            {
+              "identifier": "$data",
+              "type": "GenericObject",
+              "conditions": [
+                "$price: getJsonPropertyAsInt(\"/price\") != null",
+                "$quantity: getJsonPropertyAsInt(\"/quantity\") != null",
+                "$birthDate: getJsonPropertyAsString(\"/user/birthDate\") != null",
+                "DateTimeHelper.calculateAge(DateTimeHelper.toLocalDate($birthDate), LocalDate.now()) < 30",
+                "$price > 100",
+                "$quantity > 2"
+              ]
+            }
+          ],
+          "then": [
+            {
+              "actions": [
+                "System.out.println(\"Young user buying expensive product with quantity > 2\")",
+                "result.getResult().put(\"youngUserBonus\", true)"
+              ]
+            }
+          ]
+        },
+        {
+          "rule": "NotUserSpecialRule",
+          "when": [
+            {
+              "identifier": "$data",
+              "type": "GenericObject",
+              "conditions": [
+                "$birthDate: getJsonPropertyAsString(\"/user/birthDate\") != null",
+                "DateTimeHelper.calculateAge(DateTimeHelper.toLocalDate($birthDate), LocalDate.now()) >= 30"
+              ]
+            }
+          ],
+          "then": [
+            {
+              "actions": [
+                "System.out.println(\"Normal adult user with age >= 30\")",
+                "result.getResult().put(\"youngUserBonus\", false)"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
+tests {
+  test("responds 400", function () {
+    expect(res.status).to.equal(400);
+  });
+
+  test("error message carries the Drools compilation error", function () {
+    expect(res.body.code).to.equal(400);
+    expect(res.body.message).to.contain("Business rule does not compile");
+    expect(res.body.message).to.contain("UnknownFact");
+  });
+}
+
+settings {
+  encodeUrl: true
+}
+
+docs {
+  The first pattern references a fact type that does not exist, so the DRL does not compile and the
+  API answers 400 with the Drools messages. Needs no database.
+}

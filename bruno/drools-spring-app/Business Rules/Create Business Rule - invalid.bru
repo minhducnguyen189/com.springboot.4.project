@@ -1,0 +1,38 @@
+meta {
+  name: Create Business Rule - invalid
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/v1/drools/business-rules
+  body: json
+  auth: inherit
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "businessRule": {
+      "name": "MissingRules"
+    }
+  }
+}
+
+tests {
+  test("responds 400 when the definition has no rules", function () {
+    expect(res.status).to.equal(400);
+  });
+}
+
+settings {
+  encodeUrl: true
+}
+
+docs {
+  "rules" is required by the OpenAPI contract, so bean validation rejects the request before anything
+  is stored.
+}

@@ -1,0 +1,7 @@
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+  mongodb:
+    uri: mongodb://root:example@localhost:27017/admin?maxMessageSize=52428800
+    representation:
+      uuid: standard

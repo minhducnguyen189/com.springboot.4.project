@@ -12,6 +12,7 @@
   <modules>
     <module>table-with-million-records</module>
     <module>functional-programming</module>
+    <module>drools-spring-app</module>
   </modules>
 
   <properties>

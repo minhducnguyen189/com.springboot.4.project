@@ -1,0 +1,260 @@
+openapi: 3.0.3
+info:
+  title: Business Rule - OpenAPI 3.0
+  description: Store Drools business rules defined as JSON and test them against input data
+  version: 1.0.0
+tags:
+  - name: business-rule
+    description: Everything about business rules
+paths:
+  /v1/drools/business-rules:
+    post:
+      tags:
+        - business-rule
+      summary: create a business rule
+      description: store a business rule definition
+      operationId: createBusinessRule
+      requestBody:
+        description: business rule to store
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBusinessRuleRequest"
+      responses:
+        "201":
+          description: stored business rule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BusinessRuleResponse"
+        "400":
+          description: bad request operation
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+    get:
+      tags:
+        - business-rule
+      summary: get business rules
+      description: get all stored business rules
+      operationId: getBusinessRules
+      responses:
+        "200":
+          description: stored business rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BusinessRuleResponse"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+
+  /v1/drools/business-rules/actions/test:
+    post:
+      tags:
+        - business-rule
+      summary: test a business rule
+      description: compile the business rule and execute it against the input data
+      operationId: testBusinessRule
+      requestBody:
+        description: input data and business rule to execute
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TestBusinessRuleRequest"
+      responses:
+        "200":
+          description: result of the rule execution
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestBusinessRuleResponse"
+        "400":
+          description: bad request operation (invalid body or rule does not compile)
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+        default:
+          description: Unexpected error
+          content:
+            application/json:
+              schema:
+                $ref: "./common.yaml#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    CreateBusinessRuleRequest:
+      type: object
+      required:
+        - businessRule
+      properties:
+        businessRule:
+          $ref: "#/components/schemas/BusinessRuleDefinition"
+
+    BusinessRuleResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        definition:
+          $ref: "#/components/schemas/BusinessRuleDefinition"
+
+    TestBusinessRuleRequest:
+      type: object
+      required:
+        - data
+        - businessRule
+      properties:
+        data:
+          type: object
+          description: free-form input facts the rules are evaluated against
+        businessRule:
+          $ref: "#/components/schemas/BusinessRuleDefinition"
+
+    TestBusinessRuleResponse:
+      type: object
+      properties:
+        result:
+          type: object
+          description: copy of the input data updated by the fired rules
+
+    BusinessRuleDefinition:
+      type: object
+      required:
+        - name
+        - rules
+      properties:
+        name:
+          type: string
+          minLength: 1
+          description: DRL package name
+          example: ComplexBusinessRulePackage
+        imports:
+          type: array
+          items:
+            type: string
+          example:
+            - com.springboot.project.businessrule.fact.GenericObject
+        globals:
+          type: array
+          items:
+            $ref: "#/components/schemas/Global"
+        rules:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Rule"
+
+    Global:
+      type: object
+      required:
+        - type
+        - identifier
+      properties:
+        type:
+          type: string
+          example: com.springboot.project.businessrule.fact.ResultObject
+        identifier:
+          type: string
+          example: result
+
+    Rule:
+      type: object
+      required:
+        - rule
+        - when
+        - then
+      properties:
+        rule:
+          type: string
+          minLength: 1
+          example: HighValueOrderRule
+        when:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/Pattern"
+        then:
+          type: array
+          items:
+            $ref: "#/components/schemas/Consequence"
+        conflicts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Conflict"
+
+    Pattern:
+      type: object
+      required:
+        - identifier
+        - type
+        - conditions
+      properties:
+        identifier:
+          type: string
+          example: $data
+        type:
+          type: string
+          example: GenericObject
+        conditions:
+          type: array
+          items:
+            type: string
+
+    Consequence:
+      type: object
+      required:
+        - actions
+      properties:
+        actions:
+          type: array
+          items:
+            type: string
+
+    Conflict:
+      type: object
+      required:
+        - name
+        - identifier
+        - type
+        - conditions
+        - actions
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: MissingOrderFields
+        identifier:
+          type: string
+          example: $data
+        type:
+          type: string
+          example: GenericObject
+        conditions:
+          type: array
+          items:
+            type: string
+        actions:
+          type: array
+          items:
+            type: string
+        conflictDescription:
+          type: string
